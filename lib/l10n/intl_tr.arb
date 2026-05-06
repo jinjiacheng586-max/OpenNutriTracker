@@ -5,11 +5,14 @@
   "alphaVersionName": "[Alpha]",
   "betaVersionName": "[Beta]",
   "addLabel": "Ekle",
+  "warningLabel": "Uyarı",
+  "duplicateMealDialogContent": "Bu yiyecek bugün bu öğüne zaten eklenmiş. Tekrar eklensin mi?",
   "createCustomDialogTitle": "Özel yemek öğesi oluştur?",
   "createCustomDialogContent": "Özel bir yemek öğesi oluşturmak istiyor musunuz?",
   "settingsLabel": "Ayarlar",
   "homeLabel": "Ana Sayfa",
   "diaryLabel": "Günlük",
+  "diaryFutureDateWarning": "Gelecekteki bir tarihi düzenliyorsunuz",
   "profileLabel": "Profil",
   "searchLabel": "Ara",
   "searchProductsPage": "Ürünler",
@@ -58,6 +61,17 @@
   "settingsDisclaimerLabel": "Sorumluluk Reddi",
   "settingsReportErrorLabel": "Hata Bildir",
   "settingsPrivacySettings": "Gizlilik Ayarları",
+  "settingsShowActivityTracking": "Aktivite takibini göster",
+  "settingsShowMealMacros": "Öğün makrolarını göster",
+  "settingsNotificationsLabel": "Günlük Hatırlatıcı",
+  "settingsNotificationsTimeLabel": "Hatırlatma zamanı: {time}",
+  "@settingsNotificationsTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "settingsSourceCodeLabel": "Kaynak Kodu",
   "settingFeedbackLabel": "Geri Bildirim",
   "settingAboutLabel": "Hakkında",
@@ -65,6 +79,7 @@
   "settingsSystemLabel": "Sistem",
   "settingsMetricLabel": "Metrik (kg, cm, ml)",
   "settingsImperialLabel": "İmperial (lbs, ft, oz)",
+  "settingsShowMicronutrientsLabel": "Mikro besinleri göster",
   "settingsDistanceLabel": "Mesafe",
   "settingsVolumeLabel": "Hacim",
   "disclaimerText": "OpenNutriTracker bir tıbbi uygulama değildir. Sağlanan tüm veriler doğrulanmamıştır ve dikkatle kullanılmalıdır. Lütfen sağlıklı bir yaşam tarzı sürdürün ve herhangi bir sorununuz varsa bir profesyonele danışın. Hastalık, hamilelik veya emzirme döneminde kullanımı önerilmez.\n\n\nUygulama hala geliştirme aşamasındadır. Hatalar, aksaklıklar ve çökmeler meydana gelebilir.",
@@ -78,12 +93,34 @@
   "calculationsMacrosDistribution": "%{pctCarbs} karbonhidrat, %{pctFats} yağ, %{pctProteins} protein",
   "dailyKcalAdjustmentLabel": "Günlük Kcal ayarı:",
   "macroDistributionLabel": "Makro besin Dağılımı:",
-  "exportImportLabel": "Verileri Dışa Aktar / İçe Aktar",
+  "settingsCustomMealsLabel": "Özel Yemekler",
+  "customMealsEmptyLabel": "Henüz özel yemek kaydedilmedi.",
+  "customMealsDeleteConfirmTitle": "Özel yemek silinsin mi?",
+  "customMealsDeleteConfirmContent": "Bu yemeği kullanan tüm günlük girişleri de kaldırılacak.",
+  "exportImportAppDataLabel": "Uygulama Verilerini Dışa / İçe Aktar",
+  "importCustomFoodDataLabel": "Özel Gıda Verilerini İçe Aktar",
+  "importCustomFoodDataDescription": "Kendi öğünlerinizi bir CSV dosyasından içe aktarın. Beklenen sütun yapısını ve zorunlu alanları görmek için örneği indirin.",
+  "clearOffCacheLabel": "Önbelleği temizle",
+  "clearOffCacheSubtitle": "{count} öğe · {size}",
+  "@clearOffCacheSubtitle": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}}},
+  "clearOffCacheConfirmTitle": "Önbelleği temizle?",
+  "clearOffCacheConfirmContent": "Open Food Facts ve FDC'den yerel olarak önbelleğe alınmış arama ve tarama sonuçlarını kaldırır. Önbellek, ürünleri aradıkça ve tarattıkça otomatik olarak yeniden oluşur. Özel öğünleriniz etkilenmez.",
   "exportImportDescription": "Uygulama verilerini bir zip dosyasına dışa aktarabilir ve daha sonra içe aktarabilirsiniz. Bu, verilerinizi yedeklemek veya başka bir cihaza aktarmak istiyorsanız kullanışlıdır.\n\nUygulama, verilerinizi saklamak için herhangi bir bulut hizmeti kullanmaz.",
   "exportImportSuccessLabel": "Dışa Aktarma / İçe Aktarma başarılı",
   "exportImportErrorLabel": "Dışa Aktarma / İçe Aktarma hatası",
   "exportAction": "Dışa Aktar",
   "importAction": "İçe Aktar",
+  "downloadSampleCsvAction": "Örnek yemekler (csv)",
+  "downloadSampleRecipesCsvAction": "Örnek tarifler (csv)",
+  "importMealsCsvAction": "Yemekleri içe aktar (csv)",
+  "csvImportSuccessLabel": "CSV dosyasından {count} öğün içe aktarıldı.",
+  "@csvImportSuccessLabel": {"placeholders": {"count": {"type": "int"}}},
+  "csvImportPartialLabel": "{imported} öğün içe aktarıldı; geçersiz veri nedeniyle {skipped} satır atlandı.",
+  "@csvImportPartialLabel": {"placeholders": {"imported": {"type": "int"}, "skipped": {"type": "int"}}},
+  "csvImportErrorLabel": "CSV dosyası okunamadı. Biçimi kontrol edin ve tekrar deneyin.",
+  "csvImportContributeOffPrefix": "Barkod var mı? Ürünü Open Food Facts'e katkıda bulunun:",
+  "csvImportContributeOffAndroidLink": "Android",
+  "csvImportContributeOffIosLink": "iOS",
   "addItemLabel": "Yeni Öğe Ekle:",
   "activityLabel": "Aktivite",
   "activityExample": "ör. koşu, bisiklet, yoga ...",
@@ -107,19 +144,22 @@
   "copyOrDeleteTimeDialogContent": "\"Bugüne Kopyala\" ile yemeği bugüne kopyalayabilirsiniz. \"Sil\" ile yemeği silebilirsiniz.",
   "dialogCopyLabel": "BUGÜNE KOPYALA",
   "dialogDeleteLabel": "SİL",
-
   "shareMealLabel": "Share meal",
   "importMealLabel": "Import shared meal",
   "importMealConfirmTitle": "Import {count} items?",
   "@importMealConfirmTitle": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "importMealConfirmContent": "These items will be added to your {mealType}.",
   "@importMealConfirmContent": {
     "placeholders": {
-      "mealType": { "type": "String" }
+      "mealType": {
+        "type": "String"
+      }
     }
   },
   "importMealSuccessLabel": "Meal imported",
@@ -127,7 +167,9 @@
   "importOffFetchFailedLabel": "{count} öğe OpenFoodFacts'ten alınamadı.",
   "@importOffFetchFailedLabel": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "copyCodeLabel": "Kodu kopyala",
@@ -135,27 +177,109 @@
   "codeCopiedLabel": "Kod kopyalandı",
   "pasteCodeLabel": "Kodu yapıştır",
   "pasteCodeHint": "Paylaşılan yemek kodunu buraya yapıştırın",
-
   "suppliedLabel": "tüketilen",
   "burnedLabel": "yakılan",
   "kcalLeftLabel": "kalan kcal",
   "nutritionInfoLabel": "Beslenme Bilgileri",
   "kcalLabel": "kcal",
   "carbsLabel": "karbonhidrat",
+  "carbsLabelShort": "k",
   "fatLabel": "yağ",
+  "fatLabelShort": "y",
   "proteinLabel": "protein",
+  "proteinLabelShort": "p",
   "energyLabel": "enerji",
   "saturatedFatLabel": "doymuş yağ",
   "carbohydrateLabel": "karbonhidrat",
   "sugarLabel": "şeker",
   "fiberLabel": "lif",
+  "monounsaturatedFatLabel": "tekli doymamış yağ",
+  "polyunsaturatedFatLabel": "çoklu doymamış yağ",
+  "transFatLabel": "trans yağ",
+  "cholesterolLabel": "kolesterol",
+  "sodiumLabel": "sodyum",
+  "potassiumLabel": "potasyum",
+  "magnesiumLabel": "magnezyum",
+  "calciumLabel": "kalsiyum",
+  "ironLabel": "demir",
+  "zincLabel": "çinko",
+  "phosphorusLabel": "fosfor",
+  "vitaminALabel": "A vitamini",
+  "vitaminCLabel": "C vitamini",
+  "vitaminDLabel": "D vitamini",
+  "vitaminB6Label": "B6 vitamini",
+  "vitaminB12Label": "B12 vitamini",
+  "niacinLabel": "niasin (B3)",
+  "micronutrientsLabel": "Mikro besinler",
   "per100gmlLabel": "100g/ml başına",
   "additionalInfoLabelOFF": "Daha Fazla Bilgi\nOpenFoodFacts'te",
   "offDisclaimer": "Bu uygulama tarafından size sağlanan veriler Open Food Facts veritabanından alınmaktadır. Sağlanan bilgilerin doğruluğu, eksiksizliği veya güvenilirliği konusunda hiçbir garanti verilmemektedir. Veriler \"olduğu gibi\" sağlanır ve verilerin kullanımıyla ilgili herhangi bir zarardan verilerin kaynağı (Open Food Facts) sorumlu tutulamaz.",
   "additionalInfoLabelFDC": "Daha Fazla Bilgi\nFoodData Central'da",
   "additionalInfoLabelUnknown": "Bilinmeyen Yemek Öğesi",
   "additionalInfoLabelCustom": "Özel Yemek Öğesi",
-  "additionalInfoLabelCompendium2011": "Bilgi\n'2011 Compendium\n of Physical Activities'\nden sağlanmıştır",
+  "additionalInfoLabelRecipe": "Özel Tarif",
+  "recipesLabel": "Tarifler",
+  "recipesEmptyLabel": "Henüz tarif yok",
+  "recipesEmptyHint": "Birden fazla malzemeden bir öğün oluşturun ve diğer yiyecekler gibi yeniden kullanın.",
+  "createRecipeTitle": "Tarif Oluştur",
+  "newCustomMealLabel": "Yeni Özel Yiyecek",
+  "discardChangesTitle": "Değişiklikler iptal edilsin mi?",
+  "discardChangesContent": "Kaydedilmemiş değişiklikleriniz kaybolacak.",
+  "discardChangesConfirmLabel": "Vazgeç",
+  "editRecipeTitle": "Tarifi Düzenle",
+  "recipeNameLabel": "Tarif adı",
+  "recipeDescriptionLabel": "Açıklama (isteğe bağlı)",
+  "recipeServingsCountLabel": "Porsiyonlar (isteğe bağlı)",
+  "recipeServingsCountHelper": "Bu tarifi gram yerine porsiyon olarak kaydetmenize olanak tanır.",
+  "recipeIngredientsLabel": "Malzemeler",
+  "recipeAddIngredientLabel": "Malzeme Ekle",
+  "recipeNoIngredientsLabel": "Henüz malzeme yok",
+  "recipeTotalWeightLabel": "Toplam ağırlık (g)",
+  "recipeTotalWeightHelper": "Varsayılan olarak malzemelerin toplamı. Sıvılar yaklaşık 1 ml ≈ 1 g olarak hesaplanır.",
+  "recipeNutritionPreviewLabel": "Beslenme (toplam)",
+  "recipeNutritionPer100Label": "100 g başına",
+  "recipeIngredientAmountLabel": "Miktar",
+  "recipeIngredientUnitLabel": "Birim",
+  "recipeSaveLabel": "Tarifi Kaydet",
+  "recipeSaveErrorLabel": "Tarif kaydedilemedi.",
+  "recipeNameRequiredLabel": "Tarif bir ad gerektirir",
+  "recipeNeedsIngredientsLabel": "En az bir malzeme ekleyin",
+  "recipeInvalidTotalWeightLabel": "Toplam ağırlık sıfırdan büyük olmalı",
+  "shareRecipeLabel": "Tarifi paylaş",
+  "duplicateRecipeLabel": "Çoğalt",
+  "duplicateRecipeNameSuffix": "(kopya)",
+  "recipeTagsLabel": "Etiketler",
+  "recipeTagsHelper": "Virgülle ayırın, örn. \"kahvaltı, vegan\"",
+  "recipesFilterAllLabel": "Tümü",
+  "selectionCountLabel": "{count} seçildi",
+  "@selectionCountLabel": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "importRecipesCsvAction": "Tarifleri içe aktar (csv)",
+  "deleteSelectedRecipesConfirmTitle": "{count} tarif silinsin mi?",
+  "@deleteSelectedRecipesConfirmTitle": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "importRecipeLabel": "Tarifi içe aktar",
+  "importRecipeSuccessLabel": "Tarif içe aktarıldı",
+  "importRecipeErrorLabel": "Tarif kodu çözümlenemedi",
+  "recipesLoadErrorLabel": "Tarifler yüklenemedi. Lütfen daha sonra tekrar deneyin.",
+  "importRecipeConfirmContent": "{count} malzeme içeren bu tarif içe aktarılsın mı?",
+  "@importRecipeConfirmContent": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "recipeDeleteConfirmTitle": "Tarif silinsin mi?",
+  "recipeDeleteConfirmContent": "Bu tariften günlüğe eklenen önceki girdiler korunacaktır.",
+  "recipeLogCtaLabel": "Bu Tarifi Kaydet",
+  "recipeIngredientCountLabel": "{count} malzeme",
+  "@recipeIngredientCountLabel": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "additionalInfoLabelCompendium2011": "Bilgi\n'2024 Compendium\n of Physical Activities'\nden sağlanmıştır",
   "quantityLabel": "Miktar",
   "baseQuantityLabel": "Temel miktar (g/ml)",
   "unitLabel": "Birim",
@@ -171,6 +295,7 @@
   "infoAddedActivityLabel": "Yeni aktivite eklendi",
   "editMealLabel": "Yemeği Düzenle",
   "mealNameLabel": "Yemek adı",
+  "mealNameValidationError": "Yemek adı en az bir harf içermelidir",
   "mealBrandsLabel": "Markalar",
   "mealSizeLabel": "Yemek boyutu (g/ml)",
   "mealSizeLabelImperial": "Yemek boyutu (oz/fl oz)",
@@ -179,10 +304,22 @@
   "servingSizeLabelMetric": "Porsiyon boyutu (g/ml)",
   "servingSizeLabelImperial": "Porsiyon boyutu (oz/fl oz)",
   "mealUnitLabel": "Yemek birimi",
-  "mealKcalLabel": "kcal başına",
-  "mealCarbsLabel": "karbonhidrat başına",
-  "mealFatLabel": "yağ başına",
-  "mealProteinLabel": "protein başına 100 g/ml",
+  "mealKcalLabel": "kcal",
+  "mealCarbsLabel": "Karbonhidrat (g)",
+  "mealFatLabel": "Yağ (g)",
+  "mealProteinLabel": "Protein (g)",
+  "mealNutrientsPerQtyLabel": "{qty} {unit} başına",
+  "@mealNutrientsPerQtyLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "mealNutrientsTotalLabel": "Toplam miktar",
   "errorMealSave": "Yemek kaydedilirken hata oluştu. Doğru yemek bilgilerini girdiniz mi?",
   "bmiLabel": "BMI",
   "bmiInfo": "Vücut Kitle İndeksi (BMI), yetişkinlerde aşırı kiloyu ve obeziteyi sınıflandırmak için kullanılan bir indekstir. Kilogram cinsinden ağırlığın, metre cinsinden boyun karesine bölünmesiyle tanımlanır (kg/m²).\n\nBMI, yağ ve kas kütlesi arasında ayrım yapmaz ve bazı bireyler için yanıltıcı olabilir.",
@@ -203,6 +340,25 @@
   "goalMaintainWeight": "Kilo Koru",
   "goalGainWeight": "Kilo Al",
   "goalLabel": "Hedef",
+  "weeklyWeightGoalLabel": "Haftalık oran",
+  "weeklyWeightGoalNoneLabel": "Ayarlanmadı",
+  "weeklyWeightGoalKgPerWeek": "{rate} kg/hafta",
+  "@weeklyWeightGoalKgPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyWeightGoalLbsPerWeek": "{rate} lbs/hafta",
+  "@weeklyWeightGoalLbsPerWeek": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
+  "chooseWeeklyWeightGoalLabel": "Haftalık kilo oranı",
   "selectHeightDialogLabel": "Boy Seçin",
   "heightLabel": "Boy",
   "cmLabel": "cm",
@@ -215,8 +371,15 @@
   "yearsLabel": "{age} yıl",
   "selectGenderDialogLabel": "Cinsiyet Seçin",
   "genderLabel": "Cinsiyet",
-  "genderMaleLabel": "♂ erkek",
-  "genderFemaleLabel": "♀ kadın",
+  "genderMaleLabel": "erkek",
+  "genderFemaleLabel": "kadın",
+  "genderNonBinaryLabel": "ikili olmayan",
+  "caloriesProfileInfoTitle": "Kalori referansı",
+  "caloriesProfileInfoBody": "İkili olmayan kullanıcılar için varsayılan olarak ortalanmış bir kalori referansı kullanırız. HRT alıyorsanız veya daha doğru bir başlangıç noktası istiyorsanız hormon profilinizi buradan ayarlayabilirsiniz. Bu seçim yalnızca kalori hesaplamasını etkiler — uygulamada başka bir yerde paylaşılmaz veya gösterilmez.",
+  "caloriesProfileAveragedLabel": "Ortalanmış referans (varsayılan)",
+  "caloriesProfileEstrogenTypicalLabel": "Östrojen tipi referans",
+  "caloriesProfileTestosteroneTypicalLabel": "Testosteron tipi referans",
+  "onboardingNonBinaryDisclaimer": "Günlük kalori ihtiyacını erkek ve kadın referans formüllerinin ortalaması olarak hesaplıyoruz. Ayarlar → Hesaplamalar bölümünden istediğin zaman ince ayar yapabilirsin.",
   "nothingAddedLabel": "Hiçbir şey eklenmedi",
   "nutritionalStatusUnderweight": "Düşük Kilolu",
   "nutritionalStatusNormalWeight": "Normal Kilo",
@@ -437,5 +600,6 @@
   "paSkiingGeneral": "kayak",
   "paSkiingGeneralDesc": "genel",
   "paSnowShovingModerate": "kar küreme",
-  "paSnowShovingModerateDesc": "elle, orta derecede çaba"
+  "paSnowShovingModerateDesc": "elle, orta derecede çaba",
+  "settingsLanguageLabel": "Dil"
 }

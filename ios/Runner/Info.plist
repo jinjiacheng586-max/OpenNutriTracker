@@ -28,6 +28,12 @@
 	<array>
 		<string>en</string>
 		<string>de</string>
+		<string>cs</string>
+		<string>it</string>
+		<string>pl</string>
+		<string>tr</string>
+		<string>uk</string>
+		<string>zh</string>
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
@@ -58,5 +64,24 @@
 	<string>Camera permission is required for barcode scanning.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
     <string>Used for exporting data.</string>
+	<key>UIApplicationSceneManifest</key>
+	<dict>
+		<key>UIApplicationSupportsMultipleScenes</key>
+		<false/>
+		<key>UISceneConfigurations</key>
+		<dict>
+			<key>UIWindowSceneSessionRoleApplication</key>
+			<array>
+				<dict>
+					<key>UISceneConfigurationName</key>
+					<string>Default Configuration</string>
+					<key>UISceneDelegateClassName</key>
+					<string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+					<key>UISceneStoryboardFile</key>
+					<string>Main</string>
+				</dict>
+			</array>
+		</dict>
+	</dict>
 </dict>
 </plist>

@@ -29,6 +29,10 @@ class SpFdcFoodDTO {
         return descriptionEn;
       case SupportedLanguage.de:
         return descriptionDe;
+      case SupportedLanguage.pl:
+        return descriptionEn;
+      case SupportedLanguage.zh:
+        return descriptionEn;
     }
   }
 
