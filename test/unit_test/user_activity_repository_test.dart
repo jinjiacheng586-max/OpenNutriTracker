@@ -6,13 +6,13 @@ import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
 
+import '../helpers/hive_test_setup.dart';
+
 void main() {
   group('UserActivityRepository', () {
     setUpAll(() {
       TestWidgetsFlutterBinding.ensureInitialized();
-      Hive.registerAdapter(UserActivityDBOAdapter());
-      Hive.registerAdapter(PhysicalActivityDBOAdapter());
-      Hive.registerAdapter(PhysicalActivityTypeDBOAdapter());
+      registerHiveAdaptersOnce();
     });
 
     setUp(() {

@@ -4,6 +4,8 @@ import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
 
+import '../helpers/hive_test_setup.dart';
+
 MealNutrimentsDBO _emptyNutriments() => MealNutrimentsDBO(
       energyKcal100: null,
       carbohydrates100: null,
@@ -45,9 +47,7 @@ void main() {
     setUpAll(() {
       TestWidgetsFlutterBinding.ensureInitialized();
       Hive.init('.');
-      Hive.registerAdapter(MealDBOAdapter());
-      Hive.registerAdapter(MealSourceDBOAdapter());
-      Hive.registerAdapter(MealNutrimentsDBOAdapter());
+      registerHiveAdaptersOnce();
     });
 
     setUp(() async {

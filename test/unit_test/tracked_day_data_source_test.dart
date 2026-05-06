@@ -3,6 +3,8 @@ import 'package:hive_ce/hive.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 
+import '../helpers/hive_test_setup.dart';
+
 void main() {
   group('TrackedDayDataSource getTrackedDaysInRange test', () {
     late Box<TrackedDayDBO> box;
@@ -10,7 +12,7 @@ void main() {
 
     setUpAll(() {
       TestWidgetsFlutterBinding.ensureInitialized();
-      Hive.registerAdapter(TrackedDayDBOAdapter());
+      registerHiveAdaptersOnce();
     });
 
     setUp(() async {
@@ -148,9 +150,7 @@ void main() {
 
     setUpAll(() {
       TestWidgetsFlutterBinding.ensureInitialized();
-      if (!Hive.isAdapterRegistered(9)) {
-        Hive.registerAdapter(TrackedDayDBOAdapter());
-      }
+      registerHiveAdaptersOnce();
     });
 
     setUp(() async {

@@ -6,23 +6,14 @@ import 'package:opennutritracker/core/data/dbo/user_gender_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_pal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/user_weight_goal_dbo.dart';
 
+import '../helpers/hive_test_setup.dart';
+
 void main() {
   group('UserDataSource race-condition guarantees', () {
     setUp(() {
       TestWidgetsFlutterBinding.ensureInitialized();
       Hive.init('.');
-      if (!Hive.isAdapterRegistered(UserDBOAdapter().typeId)) {
-        Hive.registerAdapter(UserDBOAdapter());
-      }
-      if (!Hive.isAdapterRegistered(UserGenderDBOAdapter().typeId)) {
-        Hive.registerAdapter(UserGenderDBOAdapter());
-      }
-      if (!Hive.isAdapterRegistered(UserPALDBOAdapter().typeId)) {
-        Hive.registerAdapter(UserPALDBOAdapter());
-      }
-      if (!Hive.isAdapterRegistered(UserWeightGoalDBOAdapter().typeId)) {
-        Hive.registerAdapter(UserWeightGoalDBOAdapter());
-      }
+      registerHiveAdaptersOnce();
     });
 
     tearDown(() async {
