@@ -25,7 +25,7 @@ For environment setup (Flutter / Android SDK / IDE), see [GettingStarted.md](Get
 Source strings live in `lib/l10n/intl_en.arb`. Translations live in a separate ARB file per supported locale, plus manually-maintained Dart files under `lib/generated/`.
 
 > [!IMPORTANT]
-> The files under `lib/generated/` carry a `// GENERATED CODE - DO NOT MODIFY BY HAND` header but are **maintained manually** in this project. Do **not** run `intl_translation:generate_from_arb` — its output conflicts with the project's 120-character formatting and will fail CI. Edit those files by hand instead.
+> **For now**, the files under `lib/generated/` carry a `// GENERATED CODE - DO NOT MODIFY BY HAND` header but are **maintained manually** in this project — the upstream generator's output conflicts with the repo's 120-character formatting and would fail CI. Until the generation pipeline is reconciled with the formatting rules, edit those files by hand. Do **not** run `intl_translation:generate_from_arb` — this caveat will go away once the generator output is fixed.
 
 When adding a new string key in the same PR you must:
 
