@@ -88,6 +88,11 @@ class _ImportMealScannerScreenState extends State<ImportMealScannerScreen> {
     if (_isProcessing) return;
     final raw = capture.barcodes.firstOrNull?.rawValue;
     if (raw == null) return;
+    // Flip the flag synchronously, before any await, so a second
+    // onDetect call queued by mobile_scanner while the QR is still
+    // in frame can't pass the gate. Without this, two detections
+    // fired in the same microtask window both reach the dialog.
+    _isProcessing = true;
     await _processCode(raw);
   }
 

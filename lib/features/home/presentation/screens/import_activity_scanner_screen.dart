@@ -61,6 +61,13 @@ class _ImportActivityScannerScreenState
     if (_isProcessing) return;
     final raw = capture.barcodes.firstOrNull?.rawValue;
     if (raw == null) return;
+    // Flip the flag synchronously, before any await, so a second
+    // onDetect call that mobile_scanner queues up while the camera
+    // still has the QR in frame can't pass the gate. The flag was
+    // previously only flipped inside _processCode, leaving a brief
+    // microtask window where two detections could both reach the
+    // dialog.
+    _isProcessing = true;
     await _processCode(raw);
   }
 
