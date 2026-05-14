@@ -1090,6 +1090,26 @@ class S {
     );
   }
 
+  /// `Is there a weight you're working towards? You can leave this blank or change it later in Profile.`
+  String get onboardingTargetWeightSubtitle {
+    return Intl.message(
+      'Is there a weight you\'re working towards? You can leave this blank or change it later in Profile.',
+      name: 'onboardingTargetWeightSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Optional`
+  String get onboardingTargetWeightHintOptional {
+    return Intl.message(
+      'Optional',
+      name: 'onboardingTargetWeightHintOptional',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Enter correct height`
   String get onboardingWrongHeightLabel {
     return Intl.message(
@@ -6457,6 +6477,76 @@ class S {
     return Intl.message(
       'Reduces the daily deficit gradually so the last few kg don\'t feel like a wall.',
       name: 'settingsCaloriesTaperDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight history`
+  String get profileWeightHistoryTitle {
+    return Intl.message(
+      'Weight history',
+      name: 'profileWeightHistoryTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add entry`
+  String get weightHistoryAddEntry {
+    return Intl.message(
+      'Add entry',
+      name: 'weightHistoryAddEntry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No weight readings yet. Add your first one to start tracking a trend.`
+  String get weightHistoryNoEntries {
+    return Intl.message(
+      'No weight readings yet. Add your first one to start tracking a trend.',
+      name: 'weightHistoryNoEntries',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Date`
+  String get weightHistoryDateLabel {
+    return Intl.message(
+      'Date',
+      name: 'weightHistoryDateLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Weight`
+  String get weightHistoryWeightLabel {
+    return Intl.message(
+      'Weight',
+      name: 'weightHistoryWeightLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Note (optional)`
+  String get weightHistoryNoteLabel {
+    return Intl.message(
+      'Note (optional)',
+      name: 'weightHistoryNoteLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Log at least two days to see your trend.`
+  String get weightHistoryChartEmptyState {
+    return Intl.message(
+      'Log at least two days to see your trend.',
+      name: 'weightHistoryChartEmptyState',
       desc: '',
       args: [],
     );

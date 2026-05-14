@@ -462,6 +462,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("наприклад, 132"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Яка ваша поточна вага?"),
+        "onboardingTargetWeightSubtitle":
+            MessageLookupByLibrary.simpleMessage("Чи є вага, до якої ти прагнеш? Це поле можна залишити порожнім або змінити пізніше у Профілі."),
+        "onboardingTargetWeightHintOptional":
+            MessageLookupByLibrary.simpleMessage("Необов\'язково"),
         "onboardingWelcomeLabel":
             MessageLookupByLibrary.simpleMessage("Ласкаво просимо до"),
         "onboardingWrongHeightLabel":
@@ -1122,6 +1126,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Вага"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("цинк"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("Історія ваги"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("Додати запис"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "Поки немає записів ваги. Додай перший, щоб бачити динаміку."),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("Дата"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Вага"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("Нотатка (необов\'язково)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Запиши вагу принаймні за два дні, щоб побачити динаміку."),
         "diarySortByCarbs":
             MessageLookupByLibrary.simpleMessage("Вуглеводи (за спаданням)"),
         "diarySortByFat":

@@ -4,12 +4,13 @@ import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
+import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
-import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 
 /// The two export shapes available from Settings → Export / Import App Data.
@@ -23,6 +24,7 @@ class ExportDataUsecase {
   final TrackedDayRepository _trackedDayRepository;
   final RecipeRepository _recipeRepository;
   final CustomMealDataSource _customMealDataSource;
+  final WeightLogRepository _weightLogRepository;
 
   ExportDataUsecase(
     this._userActivityRepository,
@@ -30,23 +32,26 @@ class ExportDataUsecase {
     this._trackedDayRepository,
     this._recipeRepository,
     this._customMealDataSource,
+    this._weightLogRepository,
   );
 
-  /// Exports user activity, intake, tracked day, and recipe data to a zip
-  /// at a user-specified location, in the [format] the user picked.
+  /// Exports user activity, intake, tracked day, recipe, and weight-log
+  /// data to a zip at a user-specified location, in the [format] the
+  /// user picked.
   ///
   /// JSON export contains JSON files only and is what the app re-imports
-  /// from. CSV export contains CSV files only and is intended for opening
-  /// in a spreadsheet — recipes are omitted from CSV because their
-  /// nested-ingredient shape doesn't fit a flat CSV cleanly. A user who
-  /// wants both can run the export twice. See `docs/export-format.md`
-  /// for the schema.
+  /// from. CSV export contains CSV files only and is intended for
+  /// opening in a spreadsheet — recipes, photos and the weight log are
+  /// omitted from CSV because their shape doesn't flatten cleanly. A
+  /// user who wants both can run the export twice. See
+  /// `docs/export-format.md` for the schema.
   Future<bool> exportData(
     String exportZipFileName,
     String userActivityJsonFileName,
     String userIntakeJsonFileName,
     String trackedDayJsonFileName,
-    String recipeJsonFileName, {
+    String recipeJsonFileName,
+    String weightLogJsonFileName, {
     ExportFormat format = ExportFormat.json,
     String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
@@ -107,37 +112,51 @@ class ExportDataUsecase {
       );
     }
 
-    // Recipes — JSON only. The nested-ingredient shape doesn't flatten to
-    // CSV without lossy denormalisation, and a CSV-export user can fall
-    // back to the dedicated Sample / Import recipes CSV path under Import
-    // Custom Food Data if they want spreadsheet-shaped recipe data.
+    // Recipes, photos and weight log — JSON only. The recipe shape
+    // doesn't flatten to CSV without lossy denormalisation; meal /
+    // recipe photos are binary blobs; the weight log is a JSON-only
+    // dataset for now. A user who needs spreadsheet-shaped recipes can
+    // fall back to the dedicated Sample / Import recipes CSV path
+    // under Import Custom Food Data.
     if (format == ExportFormat.json) {
       final fullRecipes = _recipeRepository.getAllRecipesDBO();
-      final bytes = utf8.encode(jsonEncode(
+      final recipeBytes = utf8.encode(jsonEncode(
         fullRecipes.map((r) => r.toJson()).toList(),
       ));
       archive.addFile(
-        ArchiveFile(recipeJsonFileName, bytes.length, bytes),
+        ArchiveFile(recipeJsonFileName, recipeBytes.length, recipeBytes),
       );
 
-      // Include any user-attached recipe photos under their relative slug
-      // (e.g. `recipe_images/<id>.webp`). The slug matches what we persist
-      // on RecipeDBO.imagePath, so import can drop the bytes back into
-      // place without translating filenames. CSV exports skip this for
-      // the same reason they skip recipes — the format doesn't carry it.
+      // Include any user-attached recipe photos under their relative
+      // slug (e.g. `recipe_images/<id>.webp`). The slug matches what
+      // we persist on RecipeDBO.imagePath, so import can drop the
+      // bytes back into place without translating filenames.
       for (final recipe in fullRecipes) {
         await _addUserImageIfPresent(archive, recipe.imagePath);
       }
 
       // Custom-meal photos travel through the same `meal_images/`
       // subdirectory their relative slug names. Like recipes, these
-      // only travel with JSON exports — CSV is one-way and meal photos
-      // are a custom-meals concept that wouldn't survive the
+      // only travel with JSON exports — CSV is one-way and meal
+      // photos are a custom-meals concept that wouldn't survive the
       // spreadsheet round-trip anyway.
       final customMeals = _customMealDataSource.getAllCustomMeals();
       for (final meal in customMeals) {
         await _addUserImageIfPresent(archive, meal.localImagePath);
       }
+
+      // Weight-log dataset
+      final fullWeightLog = await _weightLogRepository.getAllEntriesDBO();
+      final weightLogBytes = utf8.encode(jsonEncode(
+        fullWeightLog.map((entry) => entry.toJson()).toList(),
+      ));
+      archive.addFile(
+        ArchiveFile(
+          weightLogJsonFileName,
+          weightLogBytes.length,
+          weightLogBytes,
+        ),
+      );
     }
 
     // Save the zip file to the user-specified location

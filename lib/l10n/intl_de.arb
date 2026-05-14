@@ -361,6 +361,8 @@
   "onboardingWeightExampleHintKg": "z. B. 60",
   "onboardingWeightExampleHintLbs": "z. B. 132",
   "onboardingWeightQuestionSubtitle": "Wie viel wiegen Sie derzeit?",
+  "onboardingTargetWeightSubtitle": "Gibt es ein Gewicht, auf das du hinarbeitest? Du kannst das Feld leer lassen oder es später im Profil ändern.",
+  "onboardingTargetWeightHintOptional": "Optional",
   "onboardingWelcomeLabel": "Willkommen bei",
   "onboardingWrongHeightLabel": "Geben Sie eine korrekte Größe ein",
   "onboardingWrongWeightLabel": "Geben Sie ein korrekte Gewicht ein",
@@ -762,5 +764,12 @@
   "weeklyWeightGoalNoneLabel": "Nicht festgelegt",
   "weightLabel": "Gewicht",
   "yearsLabel": "{age} Jahre",
-  "zincLabel": "Zink"
+  "zincLabel": "Zink",
+  "profileWeightHistoryTitle": "Gewichtsverlauf",
+  "weightHistoryAddEntry": "Eintrag hinzufügen",
+  "weightHistoryNoEntries": "Noch keine Gewichtseinträge. Füge deinen ersten Eintrag hinzu, um einen Verlauf zu sehen.",
+  "weightHistoryDateLabel": "Datum",
+  "weightHistoryWeightLabel": "Gewicht",
+  "weightHistoryNoteLabel": "Notiz (optional)",
+  "weightHistoryChartEmptyState": "Trage mindestens zwei Tage ein, um deinen Verlauf zu sehen."
 }

@@ -361,6 +361,8 @@
   "onboardingWeightExampleHintKg": "ör. 60",
   "onboardingWeightExampleHintLbs": "ör. 132",
   "onboardingWeightQuestionSubtitle": "Mevcut kilonuz nedir?",
+  "onboardingTargetWeightSubtitle": "Ulaşmak istediğin bir kilo var mı? Bu alanı boş bırakabilir veya daha sonra Profil'den değiştirebilirsin.",
+  "onboardingTargetWeightHintOptional": "İsteğe bağlı",
   "onboardingWelcomeLabel": "Hoş geldiniz",
   "onboardingWrongHeightLabel": "Doğru boy girin",
   "onboardingWrongWeightLabel": "Doğru kilo girin",
@@ -762,5 +764,12 @@
   "weeklyWeightGoalNoneLabel": "Ayarlanmadı",
   "weightLabel": "Kilo",
   "yearsLabel": "{age} yıl",
-  "zincLabel": "çinko"
+  "zincLabel": "çinko",
+  "profileWeightHistoryTitle": "Kilo geçmişi",
+  "weightHistoryAddEntry": "Kayıt ekle",
+  "weightHistoryNoEntries": "Henüz kilo kaydı yok. Eğilimi izlemek için ilk kaydını ekle.",
+  "weightHistoryDateLabel": "Tarih",
+  "weightHistoryWeightLabel": "Kilo",
+  "weightHistoryNoteLabel": "Not (isteğe bağlı)",
+  "weightHistoryChartEmptyState": "Eğilimini görmek için en az iki gün kaydet."
 }

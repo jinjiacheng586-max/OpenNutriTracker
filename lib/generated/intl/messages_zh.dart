@@ -422,6 +422,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("例如：132"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("您当前的体重是多少？"),
+        "onboardingTargetWeightSubtitle":
+            MessageLookupByLibrary.simpleMessage("你有想要达到的目标体重吗？可以留空，也可以稍后在“个人资料”中修改。"),
+        "onboardingTargetWeightHintOptional":
+            MessageLookupByLibrary.simpleMessage("可选"),
         "onboardingWelcomeLabel": MessageLookupByLibrary.simpleMessage("欢迎使用"),
         "onboardingWrongHeightLabel":
             MessageLookupByLibrary.simpleMessage("请输入正确的身高"),
@@ -971,6 +975,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("体重"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("锌"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("体重历史"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("添加记录"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "暂无体重记录。添加第一条以开始记录变化趋势。"),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("日期"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("体重"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("备注（可选）"),
+        "weightHistoryChartEmptyState":
+            MessageLookupByLibrary.simpleMessage("至少记录两天的数据才能查看变化趋势。"),
         "diarySortByCarbs":
             MessageLookupByLibrary.simpleMessage("碳水化合物（从高到低）"),
         "diarySortByFat": MessageLookupByLibrary.simpleMessage("脂肪（从高到低）"),

@@ -465,6 +465,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage(
                 "Jaka jest Twoja aktualna waga?"),
+        "onboardingTargetWeightSubtitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Czy masz wagę, do której dążysz? Możesz zostawić to pole puste lub zmienić je później w Profilu."),
+        "onboardingTargetWeightHintOptional":
+            MessageLookupByLibrary.simpleMessage("Opcjonalnie"),
         "onboardingWelcomeLabel":
             MessageLookupByLibrary.simpleMessage("Witaj w"),
         "onboardingWrongHeightLabel":
@@ -1120,6 +1125,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Waga"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("cynk"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("Historia wagi"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("Dodaj wpis"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "Brak zapisów wagi. Dodaj pierwszy, aby śledzić zmiany."),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("Data"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Waga"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("Notatka (opcjonalna)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Zapisz wagę z co najmniej dwóch dni, aby zobaczyć trend."),
         "diarySortByCarbs":
             MessageLookupByLibrary.simpleMessage("Węglowodany (malejąco)"),
         "diarySortByFat":

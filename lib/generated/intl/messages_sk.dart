@@ -457,6 +457,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("napr. 132"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Aká je vaša aktuálna hmotnosť?"),
+        "onboardingTargetWeightSubtitle":
+            MessageLookupByLibrary.simpleMessage("Máš hmotnosť, ku ktorej smeruješ? Pole môžeš nechať prázdne alebo ho neskôr zmeniť v Profile."),
+        "onboardingTargetWeightHintOptional":
+            MessageLookupByLibrary.simpleMessage("Voliteľné"),
         "onboardingWelcomeLabel":
             MessageLookupByLibrary.simpleMessage("Víta vás"),
         "onboardingWrongHeightLabel":
@@ -839,6 +843,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "privacyPolicyLabel": MessageLookupByLibrary.simpleMessage(
             "Zásady ochrany súkromia"),
         "profileLabel": MessageLookupByLibrary.simpleMessage("Profil"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("História hmotnosti"),
         "proteinLabel": MessageLookupByLibrary.simpleMessage("bielkoviny"),
         "proteinLabelShort": MessageLookupByLibrary.simpleMessage("b"),
         "quantityLabel": MessageLookupByLibrary.simpleMessage("Množstvo"),
@@ -1038,6 +1044,18 @@ class MessageLookup extends MessageLookupByLibrary {
         "weeklyWeightGoalLbsPerWeek": m9,
         "weeklyWeightGoalNoneLabel":
             MessageLookupByLibrary.simpleMessage("Nenastavené"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("Pridať záznam"),
+        "weightHistoryChartEmptyState":
+            MessageLookupByLibrary.simpleMessage("Zaznamenajte aspoň dva dni, aby ste videli svoj trend."),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("Dátum"),
+        "weightHistoryNoEntries":
+            MessageLookupByLibrary.simpleMessage("Zatiaľ žiadne záznamy o hmotnosti. Pridajte prvý a začnite sledovať trend."),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("Poznámka (voliteľná)"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Hmotnosť"),
         "weightLabel": MessageLookupByLibrary.simpleMessage("Hmotnosť"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("zinok"),

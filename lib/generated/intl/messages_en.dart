@@ -428,6 +428,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("e.g. 132"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Whats your current weight?"),
+        "onboardingTargetWeightSubtitle":
+            MessageLookupByLibrary.simpleMessage("Is there a weight you\'re working towards? You can leave this blank or change it later in Profile."),
+        "onboardingTargetWeightHintOptional":
+            MessageLookupByLibrary.simpleMessage("Optional"),
         "onboardingWelcomeLabel":
             MessageLookupByLibrary.simpleMessage("Welcome to"),
         "onboardingWrongHeightLabel":
@@ -1079,6 +1083,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Weight"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("zinc"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("Weight history"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("Add entry"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "No weight readings yet. Add your first one to start tracking a trend."),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("Date"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Weight"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("Note (optional)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Log at least two days to see your trend."),
         "diarySortByCarbs":
             MessageLookupByLibrary.simpleMessage("Carbs (high to low)"),
         "diarySortByFat":

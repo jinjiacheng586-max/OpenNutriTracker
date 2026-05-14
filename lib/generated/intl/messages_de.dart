@@ -474,6 +474,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage(
                 "Wie viel wiegen Sie derzeit?"),
+        "onboardingTargetWeightSubtitle":
+            MessageLookupByLibrary.simpleMessage(
+                "Gibt es ein Gewicht, auf das du hinarbeitest? Du kannst das Feld leer lassen oder es später im Profil ändern."),
+        "onboardingTargetWeightHintOptional":
+            MessageLookupByLibrary.simpleMessage("Optional"),
         "onboardingWelcomeLabel":
             MessageLookupByLibrary.simpleMessage("Willkommen bei"),
         "onboardingWrongHeightLabel": MessageLookupByLibrary.simpleMessage(
@@ -1133,6 +1138,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Gewicht"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("Zink"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("Gewichtsverlauf"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("Eintrag hinzufügen"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "Noch keine Gewichtseinträge. Füge deinen ersten Eintrag hinzu, um einen Verlauf zu sehen."),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("Datum"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Gewicht"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("Notiz (optional)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Trage mindestens zwei Tage ein, um deinen Verlauf zu sehen."),
         "diarySortByCarbs":
             MessageLookupByLibrary.simpleMessage("Kohlenhydrate (absteigend)"),
         "diarySortByFat":

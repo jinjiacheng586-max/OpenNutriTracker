@@ -456,6 +456,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("např. 132"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Jaká je Vaše hmotnost?"),
+        "onboardingTargetWeightSubtitle":
+            MessageLookupByLibrary.simpleMessage("Máš hmotnost, ke které směřuješ? Pole můžeš nechat prázdné nebo ho později změnit v Profilu."),
+        "onboardingTargetWeightHintOptional":
+            MessageLookupByLibrary.simpleMessage("Volitelné"),
         "onboardingWelcomeLabel":
             MessageLookupByLibrary.simpleMessage("Vítejte v"),
         "onboardingWrongHeightLabel":
@@ -1110,6 +1114,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Hmotnost"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("zinek"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("Historie hmotnosti"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("Přidat záznam"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "Zatím žádné záznamy hmotnosti. Přidejte první, abyste mohli sledovat vývoj."),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("Datum"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Hmotnost"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("Poznámka (volitelná)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Zaznamenejte alespoň dva dny, abyste viděli vývoj."),
         "diarySortByCarbs":
             MessageLookupByLibrary.simpleMessage("Sacharidy (sestupně)"),
         "diarySortByFat":

@@ -464,6 +464,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("es. 132"),
         "onboardingWeightQuestionSubtitle":
             MessageLookupByLibrary.simpleMessage("Qual è il tuo peso attuale?"),
+        "onboardingTargetWeightSubtitle":
+            MessageLookupByLibrary.simpleMessage("C\'è un peso che vuoi raggiungere? Puoi lasciare vuoto o modificarlo più tardi dal Profilo."),
+        "onboardingTargetWeightHintOptional":
+            MessageLookupByLibrary.simpleMessage("Facoltativo"),
         "onboardingWelcomeLabel":
             MessageLookupByLibrary.simpleMessage("Benvenuto in"),
         "onboardingWrongHeightLabel": MessageLookupByLibrary.simpleMessage(
@@ -1122,6 +1126,20 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Peso"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("zinco"),
+        "profileWeightHistoryTitle":
+            MessageLookupByLibrary.simpleMessage("Cronologia del peso"),
+        "weightHistoryAddEntry":
+            MessageLookupByLibrary.simpleMessage("Aggiungi voce"),
+        "weightHistoryNoEntries": MessageLookupByLibrary.simpleMessage(
+            "Nessuna registrazione del peso. Aggiungi la prima per iniziare a seguire l\'andamento."),
+        "weightHistoryDateLabel":
+            MessageLookupByLibrary.simpleMessage("Data"),
+        "weightHistoryWeightLabel":
+            MessageLookupByLibrary.simpleMessage("Peso"),
+        "weightHistoryNoteLabel":
+            MessageLookupByLibrary.simpleMessage("Nota (facoltativa)"),
+        "weightHistoryChartEmptyState": MessageLookupByLibrary.simpleMessage(
+            "Registra almeno due giorni per vedere l\'andamento."),
         "diarySortByCarbs": MessageLookupByLibrary.simpleMessage(
             "Carboidrati (dal più alto al più basso)"),
         "diarySortByFat": MessageLookupByLibrary.simpleMessage(
