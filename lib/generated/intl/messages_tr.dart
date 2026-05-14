@@ -202,9 +202,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("BUGÜNE KOPYALA"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("SİL"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("TAMAM"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Yalnızca kaydettiğin öğünlerde takip edilen besinler burada toplanır. Bir değeri eksik olan öğün o besine katkıda bulunmaz — bu nedenle toplamlar olduğundan az görünebilir."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Gelecekteki bir tarihi düzenliyorsunuz"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Günlük"),
+        "diaryNutrientPanelTitle":
+            MessageLookupByLibrary.simpleMessage("Bugünün besinleri"),
         "dinnerExample":
             MessageLookupByLibrary.simpleMessage("ör. çorba, tavuk, şarap ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Akşam Yemeği"),
@@ -378,6 +382,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Mevcut Değil"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Hiçbir şey eklenmedi"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Gün"),
+        "nutrientPanelWeekLabel": MessageLookupByLibrary.simpleMessage("Hafta"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Tüm besinler gizli — bazılarını Ayarlar → Besinler bölümünden aç."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Beslenme Bilgileri"),
         "nutritionalStatusNormalWeight":
@@ -968,6 +976,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Öğün makrolarını göster"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Mikro besinleri göster"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Besinler"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Günlük panelinde hangi besinlerin görüneceğini seç"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Günlük panelde hangi besinlerin görüneceğini seç. Gizlenenler istediğin zaman tekrar açılabilir."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Kaynak Kodu"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Sistem"),

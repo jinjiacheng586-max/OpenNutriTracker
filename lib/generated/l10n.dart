@@ -1428,6 +1428,36 @@ class S {
     );
   }
 
+  /// `Nutrients`
+  String get settingsNutrientsLabel {
+    return Intl.message(
+      'Nutrients',
+      name: 'settingsNutrientsLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Pick which nutrients appear on the diary panel`
+  String get settingsNutrientsSubtitle {
+    return Intl.message(
+      'Pick which nutrients appear on the diary panel',
+      name: 'settingsNutrientsSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose which nutrients are visible on the daily panel. Hidden ones can be turned back on at any time.`
+  String get settingsNutrientsHelp {
+    return Intl.message(
+      'Choose which nutrients are visible on the daily panel. Hidden ones can be turned back on at any time.',
+      name: 'settingsNutrientsHelp',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Distance`
   String get settingsDistanceLabel {
     return Intl.message(
@@ -2087,6 +2117,56 @@ class S {
     return Intl.message(
       'You are editing a future date',
       name: 'diaryFutureDateWarning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport.`
+  String get diaryNutrientPanelDataDisclaimer {
+    return Intl.message(
+      'Only nutrients tracked on the meals you logged are summed here. A meal missing a value contributes nothing to that nutrient — so these totals may underreport.',
+      name: 'diaryNutrientPanelDataDisclaimer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Today's nutrients`
+  String get diaryNutrientPanelTitle {
+    return Intl.message(
+      "Today's nutrients",
+      name: 'diaryNutrientPanelTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Day`
+  String get nutrientPanelDayLabel {
+    return Intl.message(
+      'Day',
+      name: 'nutrientPanelDayLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Week`
+  String get nutrientPanelWeekLabel {
+    return Intl.message(
+      'Week',
+      name: 'nutrientPanelWeekLabel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `All nutrients hidden — turn some on in Settings → Nutrients.`
+  String get nutrientPanelAllHiddenLabel {
+    return Intl.message(
+      'All nutrients hidden — turn some on in Settings → Nutrients.',
+      name: 'nutrientPanelAllHiddenLabel',
       desc: '',
       args: [],
     );

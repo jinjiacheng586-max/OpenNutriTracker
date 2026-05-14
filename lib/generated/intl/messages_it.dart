@@ -201,9 +201,13 @@ class MessageLookup extends MessageLookupByLibrary {
         "dialogCopyLabel": MessageLookupByLibrary.simpleMessage("Copia a oggi"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("ELIMINA"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Vengono sommati solo i nutrienti registrati sui pasti che hai inserito. Un pasto senza un valore non contribuisce a quel nutriente — i totali potrebbero quindi essere sottostimati."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Stai modificando una data futura"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diario"),
+        "diaryNutrientPanelTitle":
+            MessageLookupByLibrary.simpleMessage("Nutrienti di oggi"),
         "dinnerExample":
             MessageLookupByLibrary.simpleMessage("es. zuppa, pollo, vino ..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Cena"),
@@ -378,6 +382,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("N/D"),
         "nothingAddedLabel":
             MessageLookupByLibrary.simpleMessage("Niente aggiunto"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Giorno"),
+        "nutrientPanelWeekLabel":
+            MessageLookupByLibrary.simpleMessage("Settimana"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Tutti i nutrienti nascosti — attivane alcuni in Impostazioni → Nutrienti."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Informazioni nutrizionali"),
         "nutritionalStatusNormalWeight":
@@ -988,6 +997,12 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Mostra macro pasto"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Mostra micronutrienti"),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Nutrienti"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Scegli quali nutrienti compaiono nel pannello del diario"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Scegli quali nutrienti sono visibili nel pannello giornaliero. Quelli nascosti possono essere riattivati in qualsiasi momento."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Codice sorgente"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Sistema"),

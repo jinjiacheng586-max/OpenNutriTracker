@@ -197,6 +197,8 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Kopírovať na dnes"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("ZMAZAŤ"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Sčítavajú sa iba živiny zaznamenané pri zalogovaných jedlách. Jedlo bez hodnoty k danej živine neprispeje — súčty preto môžu byť podhodnotené."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Upravujete dátum v budúcnosti"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Denník"),
@@ -1017,5 +1019,19 @@ class MessageLookup extends MessageLookupByLibrary {
         "weightLabel": MessageLookupByLibrary.simpleMessage("Hmotnosť"),
         "yearsLabel": m3,
         "zincLabel": MessageLookupByLibrary.simpleMessage("zinok"),
+        "diaryNutrientPanelTitle":
+            MessageLookupByLibrary.simpleMessage("Dnešné živiny"),
+        "nutrientPanelAllHiddenLabel":
+            MessageLookupByLibrary.simpleMessage("Všetky živiny sú skryté — zapnite niektoré v Nastavenia → Živiny."),
+        "nutrientPanelDayLabel":
+            MessageLookupByLibrary.simpleMessage("Deň"),
+        "nutrientPanelWeekLabel":
+            MessageLookupByLibrary.simpleMessage("Týždeň"),
+        "settingsNutrientsHelp":
+            MessageLookupByLibrary.simpleMessage("Vyberte, ktoré živiny sa zobrazujú v dennom paneli. Skryté sa kedykoľvek dajú zapnúť späť."),
+        "settingsNutrientsLabel":
+            MessageLookupByLibrary.simpleMessage("Živiny"),
+        "settingsNutrientsSubtitle":
+            MessageLookupByLibrary.simpleMessage("Vyberte, ktoré živiny sa objavia v paneli denníka"),
       };
 }

@@ -199,9 +199,13 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Kopírovat pro dnešek"),
         "dialogDeleteLabel": MessageLookupByLibrary.simpleMessage("SMAZAT"),
         "dialogOKLabel": MessageLookupByLibrary.simpleMessage("OK"),
+        "diaryNutrientPanelDataDisclaimer":
+            MessageLookupByLibrary.simpleMessage("Sčítají se zde pouze živiny, které jsou u zaznamenaných jídel zachyceny. Jídlo bez hodnoty k dané živině nepřispěje — součty proto mohou být podhodnocené."),
         "diaryFutureDateWarning": MessageLookupByLibrary.simpleMessage(
             "Upravujete datum v budoucnosti"),
         "diaryLabel": MessageLookupByLibrary.simpleMessage("Diář"),
+        "diaryNutrientPanelTitle":
+            MessageLookupByLibrary.simpleMessage("Dnešní živiny"),
         "dinnerExample": MessageLookupByLibrary.simpleMessage(
             "např. polévka, kuřecí maso, víno..."),
         "dinnerLabel": MessageLookupByLibrary.simpleMessage("Večeře"),
@@ -373,6 +377,10 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("Nenalezeny žádné výsledky"),
         "notAvailableLabel": MessageLookupByLibrary.simpleMessage("neuvedeno"),
         "nothingAddedLabel": MessageLookupByLibrary.simpleMessage("Nezadáno"),
+        "nutrientPanelDayLabel": MessageLookupByLibrary.simpleMessage("Den"),
+        "nutrientPanelWeekLabel": MessageLookupByLibrary.simpleMessage("Týden"),
+        "nutrientPanelAllHiddenLabel": MessageLookupByLibrary.simpleMessage(
+            "Všechny živiny skryté — zapni některé v Nastavení → Živiny."),
         "nutritionInfoLabel":
             MessageLookupByLibrary.simpleMessage("Nutriční hodnoty"),
         "nutritionalStatusNormalWeight":
@@ -980,6 +988,11 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsShowMealMacros":
             MessageLookupByLibrary.simpleMessage("Zobrazit makra jídla"),
         "settingsShowMicronutrientsLabel": MessageLookupByLibrary.simpleMessage("Zobrazit mikroživiny"),
+        "settingsNutrientsLabel": MessageLookupByLibrary.simpleMessage("Živiny"),
+        "settingsNutrientsSubtitle": MessageLookupByLibrary.simpleMessage(
+            "Vyber, které živiny se zobrazí v panelu deníku"),
+        "settingsNutrientsHelp": MessageLookupByLibrary.simpleMessage(
+            "Zvol, které živiny jsou v denním panelu vidět. Skryté lze kdykoli znovu zapnout."),
         "settingsSourceCodeLabel":
             MessageLookupByLibrary.simpleMessage("Zdrojový kód"),
         "settingsSystemLabel": MessageLookupByLibrary.simpleMessage("Systém"),
