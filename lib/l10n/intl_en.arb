@@ -210,6 +210,17 @@
   "customMealBarcodeInvalid": "Barcode must be 8 to 14 digits",
   "customMealBarcodeLabel": "Barcode",
   "customMealBarcodeScanButton": "Scan barcode",
+  "customMealFormAdvanced": "Advanced",
+  "customMealFormAdvancedHelp": "Set base quantity and per-100 values for precise scaling.",
+  "customMealFormModeLabel": "Form view",
+  "customMealFormSimple": "Simple",
+  "customMealFormSimpleHelp": "Type the totals for one serving.",
+  "customMealFormSimpleFieldHelper": "{unit} in one serving",
+  "@customMealFormSimpleFieldHelper": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
   "customMealsDeleteConfirmContent": "All diary entries using this meal will also be removed.",
   "customMealsDeleteConfirmTitle": "Delete custom meal?",
   "customMealsEmptyLabel": "No custom meals saved yet.",
@@ -328,9 +339,9 @@
   "macroDistributionLabel": "Macronutrient Distribution:",
   "magnesiumLabel": "magnesium",
   "mealBrandsLabel": "Brands",
-  "mealCarbsLabel": "Carbohydrates (g)",
+  "mealCarbsLabel": "Carbohydrates",
   "mealEnergyLabel": "Energy",
-  "mealFatLabel": "Fat (g)",
+  "mealFatLabel": "Fat",
   "mealImageLabel": "Add a photo",
   "mealImagePickFromGallery": "Choose from gallery",
   "mealImageRemove": "Remove photo",
@@ -347,7 +358,7 @@
   "mealPatternPresetsLabel": "Quick presets",
   "mealPatternStandard": "Standard",
   "mealPatternTwoMeal": "Two-meal",
-  "mealProteinLabel": "Protein (g)",
+  "mealProteinLabel": "Protein",
   "mealSizeLabel": "Meal size (g/ml)",
   "mealSizeLabelImperial": "Meal size (oz/fl oz)",
   "mealUnitLabel": "Meal unit",

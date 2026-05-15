@@ -75,6 +75,8 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m23(consumed, target) => "${consumed} / ${target} kcal";
 
+  static String m24(unit) => "${unit} porsiyon başına";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
         "activityExample": MessageLookupByLibrary.simpleMessage(
@@ -375,8 +377,8 @@ class MessageLookup extends MessageLookupByLibrary {
         "magnesiumLabel": MessageLookupByLibrary.simpleMessage("magnezyum"),
         "mealBrandsLabel": MessageLookupByLibrary.simpleMessage("Markalar"),
         "mealCarbsLabel":
-            MessageLookupByLibrary.simpleMessage("karbonhidrat başına"),
-        "mealFatLabel": MessageLookupByLibrary.simpleMessage("yağ başına"),
+            MessageLookupByLibrary.simpleMessage("Karbonhidrat"),
+        "mealFatLabel": MessageLookupByLibrary.simpleMessage("Yağ"),
         "mealKcalLabel": MessageLookupByLibrary.simpleMessage("kcal başına"),
         "mealEnergyLabel": MessageLookupByLibrary.simpleMessage("Enerji"),
         "mealNameLabel": MessageLookupByLibrary.simpleMessage("Yemek adı"),
@@ -386,7 +388,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "mealNutrientsTotalLabel":
             MessageLookupByLibrary.simpleMessage("Toplam miktar"),
         "mealProteinLabel":
-            MessageLookupByLibrary.simpleMessage("protein başına 100 g/ml"),
+            MessageLookupByLibrary.simpleMessage("Protein"),
         "mealSizeLabel":
             MessageLookupByLibrary.simpleMessage("Yemek boyutu (g/ml)"),
         "mealSizeLabelImperial":
@@ -1178,6 +1180,17 @@ class MessageLookup extends MessageLookupByLibrary {
             "Bir sonraki sefer için şablon olarak kaydet"),
         "customActivityTemplatesEmpty": MessageLookupByLibrary.simpleMessage(
             "Henüz kaydedilmiş bir şablonun yok. Bir özel etkinliği sonradan hatırlamak için „Bir sonraki sefer için şablon olarak kaydet“ kutusunu işaretle."),
+        "customMealFormAdvanced":
+            MessageLookupByLibrary.simpleMessage("Gelişmiş"),
+        "customMealFormAdvancedHelp": MessageLookupByLibrary.simpleMessage(
+            "Hassas ölçek için temel miktarı ve 100 g/ml değerlerini belirleyin."),
+        "customMealFormModeLabel":
+            MessageLookupByLibrary.simpleMessage("Form görünümü"),
+        "customMealFormSimple":
+            MessageLookupByLibrary.simpleMessage("Basit"),
+        "customMealFormSimpleFieldHelper": m24,
+        "customMealFormSimpleHelp": MessageLookupByLibrary.simpleMessage(
+            "Bir porsiyon için toplam değerleri yazın."),
         "mealPatternFiveSmall":
             MessageLookupByLibrary.simpleMessage("Beş küçük"),
         "mealPatternMediterranean":
