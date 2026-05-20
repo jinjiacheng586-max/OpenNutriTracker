@@ -433,9 +433,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Setup Flutter + cache packages
-        uses: ./.github/actions/setup-flutter-cache
-
       - name: Setup Ruby + Bundler
         uses: ruby/setup-ruby@v1
         with:
@@ -472,8 +469,8 @@ jobs:
 
       - name: Install FVM
         run: |
-          dart pub global activate fvm
-          echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+          curl -fsSL https://fvm.app/install.sh | bash
+          echo "$HOME/fvm/bin" >> "$GITHUB_PATH"
 
       - name: Install Flutter version for FVM
         run: fvm install 3.41.7
@@ -492,10 +489,10 @@ jobs:
           supabase_project_anon_key: ${{ env.SUPABASE_PROJECT_ANON_KEY }}
 
       - name: Install Flutter packages
-        run: flutter pub get
+        run: fvm flutter pub get
 
       - name: Generate code
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: fvm dart run build_runner build --delete-conflicting-outputs
 
       - name: Install CocoaPods dependencies
         working-directory: ios
