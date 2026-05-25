@@ -248,13 +248,15 @@ jobs:
     # macOS build when the app doesn't compile, which this job's own build
     # surfaces regardless.
     #
-    # TEMPORARY (debug): pinned to macos-15 instead of macos-26. On macos-26
-    # the app builds and launches on the iPhone 17 Pro / iOS 26.4.1 simulator
-    # but Flutter then hangs on "Waiting for VM Service port to be available"
-    # — the Dart VM-service handshake never completes, so the test never
-    # starts (Android runs the same suite green). macos-15 ships an Xcode 16 /
-    # iOS 18 simulator this Flutter fully supports; this run tells us whether
-    # the cause is the bleeding-edge simulator (environment) or a repo change.
+    # Pinned to macos-15, not macos-26. On the macos-26 image Flutter builds
+    # and launches the app on the iPhone 17 Pro / iOS 26.4 simulator but then
+    # hangs forever on "Waiting for VM Service port to be available" — the Dart
+    # VM-service URL is never discovered on that simulator, so the test never
+    # connects (the same suite passes on the Android emulator and on the iOS 18
+    # simulator here). macos-15 ships the Xcode 16 / iOS 18 simulator this
+    # Flutter supports. Revisit macos-26 once Flutter discovers the iOS 26
+    # simulator's VM service. ios-build / package / deploy stay on macos-26 —
+    # they build/sign and never launch a simulator, so they're unaffected.
     runs-on: macos-15
     # Bound the job so a hung test fails fast rather than drifting toward
     # GitHub's 6-hour default. A healthy run is the ~11-12 min Xcode build
@@ -316,14 +318,7 @@ jobs:
         # --flavor full so the integration-test app matches the production
         # iOS scheme (bundle id + display name) rather than the develop one.
         # The whole integration_test/ directory runs from a single build.
-        #
-        # TEMPORARY: --verbose to diagnose an iOS-simulator stall. The build
-        # finishes (~6-11 min) but the run then hangs ~18 min with no output
-        # before the timeout fires — the test body never starts, while the
-        # same suite passes on the Android emulator. Verbose surfaces the
-        # install / launch / VM-service-connect phase that a plain run hides,
-        # so the log shows what it's waiting on. Revert once diagnosed.
-        run: flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded --verbose
+        run: flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded
 
   android-build:
     runs-on: ubuntu-latest
