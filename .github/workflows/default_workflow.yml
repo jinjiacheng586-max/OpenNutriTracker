@@ -544,14 +544,13 @@ jobs:
         if: startsWith(env.MATCH_GIT_URL, 'git@') && env.MATCH_GIT_SSH_PRIVATE_KEY != ''
         run: |
           mkdir -p ~/.ssh
-          ruby -rjson -ropen-uri -e '
-            meta = JSON.parse(URI.open("https://api.github.com/meta", "User-Agent" => "github-actions").read)
-            File.open(File.expand_path("~/.ssh/known_hosts"), "a", 0600) do |file|
-              meta.fetch("ssh_keys").each do |key|
-                file.puts("github.com #{key}")
-              end
-            end
-          '
+          # Fetch github.com's host keys with ssh-keyscan rather than the
+          # api.github.com/meta endpoint. That API is unauthenticated and
+          # rate-limited to 60 requests/hour per IP, and the shared macOS
+          # runner IP exhausts it — the step fails intermittently with
+          # "403 rate limit exceeded". ssh-keyscan talks to github.com:22
+          # directly and has no such limit.
+          ssh-keyscan -t rsa,ecdsa,ed25519 github.com >> ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
       - name: Cache CocoaPods
