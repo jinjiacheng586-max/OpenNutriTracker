@@ -318,7 +318,21 @@ jobs:
         # --flavor full so the integration-test app matches the production
         # iOS scheme (bundle id + display name) rather than the develop one.
         # The whole integration_test/ directory runs from a single build.
-        run: flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded
+        # Retry once: integration tests occasionally flake on a slow simulator
+        # (a dropped frame, a transient launch hiccup). A second attempt on the
+        # same booted sim clears those without masking a real failure, since a
+        # genuine break fails both attempts.
+        run: |
+          attempt=1
+          max=2
+          until flutter test integration_test/ -d "$DEVICE_UDID" --flavor full --reporter expanded; do
+            if [ "$attempt" -ge "$max" ]; then
+              echo "::error::iOS integration tests failed after $max attempts"
+              exit 1
+            fi
+            attempt=$((attempt + 1))
+            echo "::warning::iOS integration tests flaked; retrying (attempt $attempt of $max)"
+          done
 
   android-build:
     runs-on: ubuntu-latest
@@ -451,7 +465,16 @@ jobs:
           disable-animations: false
           script: echo "AVD snapshot generated for cache"
 
-      - name: Run integration tests
+      # Two steps rather than a script-level loop on purpose: the flake we see
+      # is the emulator-runner occasionally failing to bring the AVD up before
+      # the test runs (it died on "could not connect to TCP port 5554"), which
+      # happens outside the `script`. Retrying the whole step gives the retry a
+      # fresh emulator boot, not just a re-run of flutter test. Attempt 1 uses
+      # continue-on-error so a flake doesn't fail the job; attempt 2 runs only
+      # if attempt 1 failed, and a real break fails both.
+      - name: Run integration tests (attempt 1)
+        id: android-integration
+        continue-on-error: true
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 34
@@ -464,6 +487,18 @@ jobs:
           # production-equivalent applicationId rather than the dev sideload
           # variant (see android/app/build.gradle). The whole
           # integration_test/ directory runs from a single build.
+          script: flutter test integration_test/ --flavor full --reporter expanded
+
+      - name: Run integration tests (retry once)
+        if: steps.android-integration.outcome == 'failure'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
           script: flutter test integration_test/ --flavor full --reporter expanded
 
   ios-package:
