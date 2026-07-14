@@ -7,15 +7,6 @@ import 'package:timezone/timezone.dart' as tz;
 /// #312: Service for scheduling daily meal reminder notifications.
 class NotificationService {
   static const int _dailyReminderId = 0;
-  static const int _fastingCompleteId = 1;
-  // Channel IDs are stable, locale-independent handles the OS keys each
-  // channel by — they must never be translated. The user-facing channel
-  // name and description are passed in localized by the caller (see
-  // scheduleDailyReminder / scheduleFastingComplete), since they surface in
-  // the system notification settings.
-  static const String _channelId = 'daily_reminder';
-  static const String _fastingChannelId = 'fasting_complete';
-
   final _log = Logger('NotificationService');
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -29,30 +20,20 @@ class NotificationService {
     final String timeZoneName = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(timeZoneName));
 
-    const androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
-    const initSettings =
-        InitializationSettings(android: androidSettings, iOS: iosSettings);
+    const initSettings = InitializationSettings(iOS: iosSettings);
 
     await _plugin.initialize(initSettings);
     _initialized = true;
     _log.fine('NotificationService initialized');
   }
 
-  /// Requests the OS notification permission (Android 13+ / iOS).
+  /// Requests notification permission from iOS.
   Future<bool> requestPermission() async {
-    final android = _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
-    if (android != null) {
-      final granted = await android.requestNotificationsPermission();
-      return granted ?? false;
-    }
     final ios = _plugin
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>();
@@ -70,22 +51,12 @@ class NotificationService {
     required int minute,
     required String title,
     required String body,
-    required String channelName,
-    required String channelDescription,
   }) async {
     await _ensureInitialized();
     await _plugin.cancel(_dailyReminderId);
 
-    final androidDetails = AndroidNotificationDetails(
-      _channelId,
-      channelName,
-      channelDescription: channelDescription,
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
-    );
     const iosDetails = DarwinNotificationDetails();
-    final details =
-        NotificationDetails(android: androidDetails, iOS: iosDetails);
+    const details = NotificationDetails(iOS: iosDetails);
 
     final scheduledDate = computeNextOccurrence(
       tz.TZDateTime.now(tz.local),
@@ -110,50 +81,6 @@ class NotificationService {
     await _ensureInitialized();
     await _plugin.cancel(_dailyReminderId);
     _log.fine('Daily reminder cancelled');
-  }
-
-  /// Schedules a one-shot notification for the moment a fasting session is
-  /// expected to reach its target. The OS owns delivery from here, so the
-  /// app doesn't need to be running. Calling this twice replaces the
-  /// previously-scheduled ping.
-  Future<void> scheduleFastingComplete({
-    required DateTime when,
-    required String title,
-    required String body,
-    required String channelName,
-    required String channelDescription,
-  }) async {
-    await _ensureInitialized();
-    await _plugin.cancel(_fastingCompleteId);
-
-    final scheduled = tz.TZDateTime.from(when, tz.local);
-    final androidDetails = AndroidNotificationDetails(
-      _fastingChannelId,
-      channelName,
-      channelDescription: channelDescription,
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
-    );
-    const iosDetails = DarwinNotificationDetails();
-    final details =
-        NotificationDetails(android: androidDetails, iOS: iosDetails);
-
-    await _plugin.zonedSchedule(
-      _fastingCompleteId,
-      title,
-      body,
-      scheduled,
-      details,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-    );
-    _log.fine('Fasting-complete notification scheduled for $scheduled');
-  }
-
-  /// Cancels any pending fasting-complete notification.
-  Future<void> cancelFastingComplete() async {
-    await _ensureInitialized();
-    await _plugin.cancel(_fastingCompleteId);
-    _log.fine('Fasting-complete notification cancelled');
   }
 
   Future<void> _ensureInitialized() async {

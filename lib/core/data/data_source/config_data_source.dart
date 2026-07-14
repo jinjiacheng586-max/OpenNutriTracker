@@ -30,17 +30,6 @@ class ConfigDataSource {
     await config?.save();
   }
 
-  Future<void> setConfigAcceptedAnonymousData(
-    bool hasAcceptedAnonymousData,
-  ) async {
-    _log.fine(
-      'Updating config hasAcceptedAnonymousData to $hasAcceptedAnonymousData',
-    );
-    final config = _configBox.get(_configKey);
-    config?.hasAcceptedSendAnonymousData = hasAcceptedAnonymousData;
-    await config?.save();
-  }
-
   Future<AppThemeDBO> getAppTheme() async {
     final config = _configBox.get(_configKey);
     return config?.selectedAppTheme ?? AppThemeDBO.defaultTheme;
@@ -93,13 +82,6 @@ class ConfigDataSource {
     await config?.save();
   }
 
-  Future<void> setConfigShowActivityTracking(bool show) async {
-    _log.fine('Updating config showActivityTracking to $show');
-    final config = _configBox.get(_configKey);
-    config?.showActivityTracking = show;
-    await config?.save();
-  }
-
   Future<void> setConfigShowMealMacros(bool show) async {
     _log.fine('Updating config showMealMacros to $show');
     final config = _configBox.get(_configKey);
@@ -125,12 +107,7 @@ class ConfigDataSource {
   Future<String?> getSelectedLocale() async {
     final config = _configBox.get(_configKey);
     final raw = config?.selectedLocale;
-    // Backward-compat: the project used to ship Czech as 'cz' (non-standard).
-    // It was renamed to the BCP-47 code 'cs' so iOS surfaces it correctly in
-    // its system language picker. Migrate any stored 'cz' value silently so
-    // existing users keep their language preference across the rename.
-    if (raw == 'cz') return 'cs';
-    return raw;
+    return raw == 'en' || raw == 'zh' ? raw : null;
   }
 
   Future<void> setSelectedLocale(String? locale) async {
@@ -151,14 +128,6 @@ class ConfigDataSource {
     _log.fine('Updating config usesKilojoules to $usesKilojoules');
     final config = _configBox.get(_configKey);
     config?.usesKilojoules = usesKilojoules;
-    await config?.save();
-  }
-
-  Future<void> setConfigMealKcalSharesPct(Map<String, int> shares) async {
-    _log.fine('Updating config mealKcalSharesPct to $shares');
-    final config = _configBox.get(_configKey);
-    // Copy into a fresh map so Hive sees a distinct object reference on save.
-    config?.mealKcalSharesPct = Map<String, int>.from(shares);
     await config?.save();
   }
 
@@ -201,17 +170,6 @@ class ConfigDataSource {
     await config.save();
   }
 
-  Future<void> setConfigNutrientPanelVisibility(
-    Map<String, bool> visibility,
-  ) async {
-    _log.fine('Updating nutrientPanelVisibility to $visibility');
-    final config = _configBox.get(_configKey);
-    // Persist a defensive copy — Hive serialises whatever we hand it, and a
-    // caller-owned map mutating later would silently change the saved value.
-    config?.nutrientPanelVisibility = Map<String, bool>.from(visibility);
-    await config?.save();
-  }
-
   Future<void> setConfigDayStartOffsetHours(int hours) async {
     _log.fine('Updating config dayStartOffsetHours to $hours');
     final config = _configBox.get(_configKey);
@@ -226,40 +184,8 @@ class ConfigDataSource {
     await config?.save();
   }
 
-  Future<void> setConfigDailyWaterGoalMl(int goalMl) async {
-    _log.fine('Updating config dailyWaterGoalMl to $goalMl');
-    final config = _configBox.get(_configKey);
-    config?.dailyWaterGoalMl = goalMl;
-    await config?.save();
-  }
-
-  Future<void> setFastingWarningAcknowledged(bool acknowledged) async {
-    _log.fine('Updating config fastingWarningAcknowledged to $acknowledged');
-    final config = _configBox.get(_configKey);
-    config?.fastingWarningAcknowledged = acknowledged;
-    await config?.save();
-  }
-
-  Future<void> setConfigUseMaterialYou(bool useMaterialYou) async {
-    _log.fine('Updating config useMaterialYou to $useMaterialYou');
-    final config = _configBox.get(_configKey);
-    config?.useMaterialYou = useMaterialYou;
-    await config?.save();
-  }
-
-  Future<void> setConfigAccentColor(int? value) async {
-    _log.fine('Updating config accentColor to $value');
-    final config = _configBox.get(_configKey);
-    config?.accentColor = value;
-    await config?.save();
-  }
-
   Future<ConfigDBO> getConfig() async {
     return _configBox.get(_configKey) ?? ConfigDBO.empty();
   }
 
-  Future<bool> getHasAcceptedAnonymousData() async {
-    final config = _configBox.get(_configKey);
-    return config?.hasAcceptedSendAnonymousData ?? false;
-  }
 }

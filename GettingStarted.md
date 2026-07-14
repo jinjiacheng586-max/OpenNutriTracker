@@ -1,71 +1,53 @@
-# Getting started
+# Getting started on macOS
 
-## Android development with Windows 11
+OpenNutriTracker is an iOS-only Flutter application. Local development requires:
 
-This IDE setup is tested on Windows 11.
+- macOS with the full Xcode application and an iOS Simulator runtime
+- CocoaPods
+- FVM, which installs the Flutter version pinned in `.fvmrc`
+- VS Code with the Flutter extension, or another Flutter-aware editor
 
-For setup first you need the following things:
+## Install the Apple toolchain
 
-- Android SDK and Android Emulator
-- Flutter
-- IDE like Android Studio or VS Code with Flutter Plugin installed.
-
-Use paths for SDKs without spaces and special characters.
-
-### Setup Android SDK and Emulator
-
-1. Download Android Studio from https://developer.android.com/studio and install. Keep "Android Virtual Device" checked. Start Android Studio after installation.
-
-2. Install the Android SDK when asked.
-
-3. After finishing the SDK installation you should the "Welcome to Android Studio" Screen. Click on "More Actions" -> "SDK Manager", switch to "SDK Tools" tab and check "Android SDK Command-line Tools (latest)", click "OK" and install the tools.
-
-4. Check under "More Actions" -> "Virtual Device Manager" if a virtual phone was set up, if not create one, e.g. a Medium Phone with Default Settings.
-
-5. Close Android Studio.
-
-### Setup Flutter SDK
-
-This project uses [FVM](https://fvm.app/) to pin the Flutter version. FVM reads `.fvmrc` in the repo root and installs the correct SDK automatically.
-
-1. Install FVM by following the instructions at [fvm.app/documentation/getting-started/installation](https://fvm.app/documentation/getting-started/installation).
-
-2. In the cloned repository folder, run:
+Install Xcode from the Mac App Store, open it once, and install an iOS Simulator runtime from Xcode Settings → Platforms.
 
 ```sh
+sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+sudo xcodebuild -runFirstLaunch
+brew install cocoapods
+```
+
+## Install Flutter through FVM
+
+```sh
+brew tap leoafarias/fvm
+brew install fvm
 fvm install
 ```
 
-This downloads the pinned Flutter version (defined in `.fvmrc`) and creates a `.fvm/flutter_sdk` symlink in the project folder. VS Code picks this up automatically via the `dart.flutterSdkPath` setting in `.vscode/settings.json`.
+The last command reads `.fvmrc`, installs the pinned Flutter SDK, and creates `.fvm/flutter_sdk`. VS Code uses that SDK through `.vscode/settings.json`.
 
-### Setup the Workspace in Visual Studio Code (VSC)
+## Prepare the project
 
-1. Create a new folder, open the folder in VSC.
+Run these commands from the repository root:
 
-2. Configure the Android SDK path for Flutter:
+```sh
+cp .env.example .env
+fvm flutter pub get
+fvm dart run build_runner build
+fvm flutter doctor -v
+```
 
-`flutter config --android-sdk "e:\path\to\androidSDK"`
+The placeholder environment values are enough for code generation and a basic debug build. Configure real Supabase values if you need the hosted FDC search; see `docs/supabase-fdc-self-hosting.md`.
 
-3.⁠ ⁠Clone the repository with git in a VSC terminal (make sure the active folder in the terminal is your created folder from step 1):
+## Run on an iOS Simulator
 
-`git clone https://github.com/simonoppowa/OpenNutriTracker.git .`
+```sh
+open -a Simulator
+fvm flutter devices
+fvm flutter run --flavor develop
+```
 
-4.⁠ ⁠Create your local environment file from the template:
+If more than one simulator is available, pass its device ID with `-d`. If CocoaPods reports a stale or missing sandbox, run `pod install` in the `ios` directory and try again.
 
-`cp .env.example .env`
-
-`.env` is gitignored. Edit it to fill in real values (or leave the placeholders for a debug build that doesn't need the live backend — see `docs/supabase-fdc-self-hosting.md` for the FDC keys).
-
-5.⁠ ⁠Get Dependencies.
-
-`flutter pub get`
-
-6.⁠ ⁠Run Build Runner to generate Files.
-
-`dart run build_runner build`
-
-At the best revert all the visible generated files now, only env.g.dart is needed, it is not checked in because it is in .gitignore.
-
-7.⁠ ⁠Restart VSC, VSC detects now that this is a flutter project. On the Bottom Right "No Device" ist displayed, click on it, then select "Start Medium Phone" on the command Palette on the top. Wait for the phone to boot up.
-
-8. Press F5 to start a debug session (may take a while on the first time). Keep the virtual phone running all the time, just start and stop Debugging.
+The `develop` scheme uses a separate bundle identifier and display name so it can coexist with an App Store build. Physical-device deployment requires an Apple Development team and code-signing configuration in Xcode.

@@ -16,7 +16,6 @@ class CalendarDayLoading extends CalendarDayState {
 
 class CalendarDayLoaded extends CalendarDayState {
   final TrackedDayEntity? trackedDayEntity;
-  final List<UserActivityEntity> userActivityList;
   final List<IntakeEntity> breakfastIntakeList;
   final List<IntakeEntity> lunchIntakeList;
   final List<IntakeEntity> dinnerIntakeList;
@@ -28,13 +27,6 @@ class CalendarDayLoaded extends CalendarDayState {
   final double lunchKcalTarget;
   final double dinnerKcalTarget;
   final double snackKcalTarget;
-  // #150 follow-up: per-meal share percentages. A 0% share hides the section
-  // entirely so OMAD / two-meal users don't see meal slots they've explicitly
-  // opted out of.
-  final int breakfastSharePct;
-  final int lunchSharePct;
-  final int dinnerSharePct;
-  final int snackSharePct;
   // Persisted per-meal sort preference, keyed by meal type string
   // (breakfast / lunch / dinner / snack) and valued by DiarySortType index.
   // Null when the user has never picked a sort, in which case the diary
@@ -43,7 +35,6 @@ class CalendarDayLoaded extends CalendarDayState {
 
   const CalendarDayLoaded(
     this.trackedDayEntity,
-    this.userActivityList,
     this.breakfastIntakeList,
     this.lunchIntakeList,
     this.dinnerIntakeList,
@@ -51,11 +42,7 @@ class CalendarDayLoaded extends CalendarDayState {
     this.breakfastKcalTarget,
     this.lunchKcalTarget,
     this.dinnerKcalTarget,
-    this.snackKcalTarget,
-    this.breakfastSharePct,
-    this.lunchSharePct,
-    this.dinnerSharePct,
-    this.snackSharePct, {
+    this.snackKcalTarget, {
     this.diarySortPreferences,
   });
 
@@ -66,10 +53,6 @@ class CalendarDayLoaded extends CalendarDayState {
         lunchKcalTarget,
         dinnerKcalTarget,
         snackKcalTarget,
-        breakfastSharePct,
-        lunchSharePct,
-        dinnerSharePct,
-        snackSharePct,
         diarySortPreferences,
       ];
 }

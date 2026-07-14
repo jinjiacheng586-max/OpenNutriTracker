@@ -30,13 +30,7 @@ class _FakeUserRepository implements UserRepository {
 }
 
 class _FakeConfigRepository implements ConfigRepository {
-  final Completer<void> anonCompleter = Completer<void>();
   final Completer<void> imperialCompleter = Completer<void>();
-
-  @override
-  Future<void> setConfigHasAcceptedAnonymousData(bool _) async {
-    await anonCompleter.future;
-  }
 
   @override
   Future<void> setConfigUsesImperialUnits(bool _) async {
@@ -85,7 +79,7 @@ void main() {
       // home screen recomputed kcal against the dummy default user.
 
       final saveFuture =
-          bloc.saveOnboardingData(makeUser(), false, false);
+          bloc.saveOnboardingData(makeUser(), false);
 
       // Yield once so the bloc has a chance to start the inner write.
       await Future<void>.delayed(Duration.zero);
@@ -104,7 +98,6 @@ void main() {
 
       // Complete the writes in order; saveOnboardingData should now resolve.
       userRepo.writeCompleter.complete();
-      configRepo.anonCompleter.complete();
       configRepo.imperialCompleter.complete();
       await saveFuture;
       expect(resolved, isTrue);

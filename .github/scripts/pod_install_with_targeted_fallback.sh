@@ -45,7 +45,7 @@ fi
 #   [!] Unable to find a specification for `FooName`
 #   None of your spec sources contain a spec satisfying the dependency: `FooName (= 1.2.3)`.
 #
-# Either form may name a subspec like `Sentry/HybridSDK`; `pod update`
+# Either form may name a subspec like `ExampleSDK/Core`; `pod update`
 # operates on root pods, so we strip the subspec suffix below.
 extract_pods() {
   {
@@ -63,13 +63,18 @@ while IFS= read -r line; do
   [ -n "$line" ] && parsed_pods+=("$line")
 done < <(extract_pods)
 
-declare -A seen=()
 root_pods=()
 for pod in "${parsed_pods[@]:-}"; do
   root="${pod%%/*}"
   [ -z "$root" ] && continue
-  if [ -z "${seen[$root]:-}" ]; then
-    seen[$root]=1
+  already_seen=false
+  for existing in "${root_pods[@]:-}"; do
+    if [ "$existing" = "$root" ]; then
+      already_seen=true
+      break
+    fi
+  done
+  if [ "$already_seen" = false ]; then
     root_pods+=("$root")
   fi
 done

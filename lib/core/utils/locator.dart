@@ -1,68 +1,46 @@
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get_it/get_it.dart';
 import 'package:opennutritracker/core/data/data_source/config_data_source.dart';
-import 'package:opennutritracker/core/data/data_source/custom_activity_template_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/remote_search_cache_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/custom_meal_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/recipe_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/intake_data_source.dart';
-import 'package:opennutritracker/core/data/data_source/physical_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/tracked_day_data_source.dart';
-import 'package:opennutritracker/core/data/data_source/user_activity_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/user_data_source.dart';
-import 'package:opennutritracker/core/data/data_source/water_intake_data_source.dart';
 import 'package:opennutritracker/core/data/data_source/weight_log_data_source.dart';
 import 'package:opennutritracker/core/data/repository/config_repository.dart';
-import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
-import 'package:opennutritracker/core/data/repository/physical_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
-import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/user_repository.dart';
-import 'package:opennutritracker/core/data/repository/water_intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/domain/usecase/add_config_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/add_custom_activity_template_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_tracked_day_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/add_user_activity_usercase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_user_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/add_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/add_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/compute_recipe_nutrition_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/delete_custom_activity_template_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_recipe_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/merge_custom_meals_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/delete_user_activity_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/delete_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_all_recipes_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_custom_activity_templates_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_kcal_goal_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_macro_goal_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_physical_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_recipe_by_id_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_user_activity_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/get_water_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_weight_log_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/save_recipe_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
-import 'package:opennutritracker/core/domain/usecase/update_user_activity_usecase.dart';
 import 'package:opennutritracker/core/utils/env.dart';
 import 'package:opennutritracker/core/utils/hive_db_provider.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/ont_image_cache_manager.dart';
 import 'package:opennutritracker/core/utils/secure_app_storage_provider.dart';
-import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
-import 'package:opennutritracker/features/add_activity/presentation/bloc/activities_bloc.dart';
-import 'package:opennutritracker/features/add_activity/presentation/bloc/recent_activities_bloc.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_source.dart';
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_fdc_data_source.dart';
@@ -75,14 +53,6 @@ import 'package:opennutritracker/features/add_meal/presentation/bloc/recent_meal
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/edit_meal/presentation/bloc/edit_meal_bloc.dart';
-import 'package:opennutritracker/features/fasting/data/data_source/fasting_data_source.dart';
-import 'package:opennutritracker/features/fasting/data/repository/fasting_repository.dart';
-import 'package:opennutritracker/features/fasting/domain/usecase/acknowledge_fasting_warning_usecase.dart';
-import 'package:opennutritracker/features/fasting/domain/usecase/cancel_fasting_usecase.dart';
-import 'package:opennutritracker/features/fasting/domain/usecase/complete_fasting_usecase.dart';
-import 'package:opennutritracker/features/fasting/domain/usecase/get_active_fasting_session_usecase.dart';
-import 'package:opennutritracker/features/fasting/domain/usecase/start_fasting_usecase.dart';
-import 'package:opennutritracker/features/fasting/presentation/bloc/fasting_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/features/onboarding/presentation/bloc/onboarding_bloc.dart';
@@ -92,14 +62,8 @@ import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_detai
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipes_bloc.dart';
 import 'package:opennutritracker/features/scanner/domain/usecase/search_product_by_barcode_usecase.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
-import 'package:opennutritracker/features/settings/domain/usecase/download_sample_csv_usecase.dart';
-import 'package:opennutritracker/features/settings/domain/usecase/download_sample_json_usecase.dart';
-import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_json_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/export_data_usecase.dart';
 import 'package:opennutritracker/features/settings/domain/usecase/import_data_usecase.dart';
-import 'package:opennutritracker/features/settings/domain/usecase/import_meals_csv_usecase.dart';
-import 'package:opennutritracker/features/settings/domain/usecase/import_meals_json_usecase.dart';
-import 'package:opennutritracker/features/settings/domain/usecase/import_recipes_csv_usecase.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/custom_meals_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/export_import_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
@@ -151,20 +115,11 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
     ),
   );
   locator.registerLazySingleton(() => DiaryBloc(locator(), locator()));
   locator.registerLazySingleton(
     () => CalendarDayBloc(
-      locator(),
-      locator(),
-      locator(),
       locator(),
       locator(),
       locator(),
@@ -192,20 +147,10 @@ Future<void> initLocator() async {
       locator(),
       locator(),
       locator(),
-      locator(), // #173: GetTrackedDayUsecase for nutrient-goal pre-fill
     ),
   );
   locator.registerFactory(
-    () => ExportImportBloc(
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-    ),
+    () => ExportImportBloc(locator(), locator()),
   );
   // Lazy singleton: shared between RecipesPage's Custom Meals tab and the
   // create-from-popup flow on the same tab — both must mutate / observe the
@@ -220,21 +165,6 @@ Future<void> initLocator() async {
     ),
   );
 
-  locator.registerFactory<ActivitiesBloc>(() => ActivitiesBloc(locator()));
-  locator.registerFactory<RecentActivitiesBloc>(
-    () => RecentActivitiesBloc(locator()),
-  );
-  locator.registerFactory<ActivityDetailBloc>(
-    () => ActivityDetailBloc(
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-    ),
-  );
   locator.registerFactory<MealDetailBloc>(
     () => MealDetailBloc(
       locator(),
@@ -256,18 +186,6 @@ Future<void> initLocator() async {
   );
   locator.registerFactory<FoodBloc>(() => FoodBloc(locator(), locator()));
   locator.registerFactory(() => RecentMealBloc(locator(), locator()));
-  // #84: fasting timer. Factory so the screen-scoped timer and dialog
-  // state reset cleanly each time the user opens the screen.
-  locator.registerFactory<FastingBloc>(
-    () => FastingBloc(
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-    ),
-  );
 
   // UseCases
   locator.registerLazySingleton<GetConfigUsecase>(
@@ -306,31 +224,6 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<UpdateIntakeUsecase>(
     () => UpdateIntakeUsecase(locator()),
   );
-  locator.registerLazySingleton<GetUserActivityUsecase>(
-    () => GetUserActivityUsecase(locator()),
-  );
-  locator.registerLazySingleton<AddUserActivityUsecase>(
-    () => AddUserActivityUsecase(locator()),
-  );
-  locator.registerLazySingleton<DeleteUserActivityUsecase>(
-    () => DeleteUserActivityUsecase(locator()),
-  );
-  locator.registerLazySingleton<UpdateUserActivityUsecase>(
-    () => UpdateUserActivityUsecase(locator(), locator()),
-  );
-  // #70 follow-up: saved Custom activity templates.
-  locator.registerLazySingleton<AddCustomActivityTemplateUsecase>(
-    () => AddCustomActivityTemplateUsecase(locator()),
-  );
-  locator.registerLazySingleton<GetCustomActivityTemplatesUsecase>(
-    () => GetCustomActivityTemplatesUsecase(locator()),
-  );
-  locator.registerLazySingleton<DeleteCustomActivityTemplateUsecase>(
-    () => DeleteCustomActivityTemplateUsecase(locator()),
-  );
-  locator.registerLazySingleton<GetPhysicalActivityUsecase>(
-    () => GetPhysicalActivityUsecase(locator()),
-  );
   locator.registerLazySingleton<GetTrackedDayUsecase>(
     () => GetTrackedDayUsecase(locator()),
   );
@@ -346,61 +239,16 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<DeleteWeightLogUsecase>(
     () => DeleteWeightLogUsecase(locator()),
   );
-  locator.registerLazySingleton<AddWaterIntakeUsecase>(
-    () => AddWaterIntakeUsecase(locator()),
-  );
-  locator.registerLazySingleton<GetWaterIntakeUsecase>(
-    () => GetWaterIntakeUsecase(locator()),
-  );
-  locator.registerLazySingleton<DeleteWaterIntakeUsecase>(
-    () => DeleteWaterIntakeUsecase(locator()),
-  );
   locator.registerLazySingleton(
-    () => GetKcalGoalUsecase(locator(), locator(), locator()),
+    () => GetKcalGoalUsecase(locator(), locator()),
   );
   locator.registerLazySingleton(() => GetMacroGoalUsecase(locator()));
   locator.registerLazySingleton(
-    () => ExportDataUsecase(
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-    ),
+    () => ExportDataUsecase(locator(), locator(), locator(), locator(), locator()),
   );
   locator.registerLazySingleton(
-    () => ImportDataUsecase(
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-    ),
+    () => ImportDataUsecase(locator(), locator(), locator(), locator()),
   );
-  locator.registerLazySingleton(() => ImportMealsCsvUsecase(locator()));
-  locator.registerLazySingleton(() => ImportRecipesCsvUsecase(locator()));
-  locator.registerLazySingleton(() => DownloadSampleCsvUsecase());
-  locator.registerLazySingleton(() => DownloadSampleJsonUsecase());
-  locator.registerLazySingleton(
-    () => ImportMealsJsonUsecase(
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-      locator(),
-    ),
-  );
-  locator.registerLazySingleton(() => ImportRecipesJsonUsecase(locator()));
-
-  // Fasting use cases (#84)
-  locator.registerFactory(() => StartFastingUseCase(locator()));
-  locator.registerFactory(() => CancelFastingUseCase(locator()));
-  locator.registerFactory(() => CompleteFastingUseCase(locator()));
-  locator.registerFactory(() => GetActiveFastingSessionUseCase(locator()));
-  locator.registerFactory(() => AcknowledgeFastingWarningUseCase(locator()));
 
   // Recipe use cases
   locator.registerLazySingleton(() => ComputeRecipeNutritionUseCase());
@@ -423,29 +271,14 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<ProductsRepository>(
     () => ProductsRepository(locator(), locator(), locator()),
   );
-  locator.registerLazySingleton<UserActivityRepository>(
-    () => UserActivityRepository(locator()),
-  );
-  locator.registerLazySingleton<PhysicalActivityRepository>(
-    () => PhysicalActivityRepository(locator()),
-  );
   locator.registerLazySingleton<TrackedDayRepository>(
     () => TrackedDayRepository(locator()),
   );
   locator.registerLazySingleton<WeightLogRepository>(
     () => WeightLogRepository(locator()),
   );
-  locator.registerLazySingleton<WaterIntakeRepository>(
-    () => WaterIntakeRepository(locator()),
-  );
   locator.registerLazySingleton<RecipeRepository>(
     () => RecipeRepository(locator()),
-  );
-  locator.registerLazySingleton<CustomActivityTemplateRepository>(
-    () => CustomActivityTemplateRepository(locator()),
-  );
-  locator.registerLazySingleton<FastingRepository>(
-    () => FastingRepository(locator()),
   );
 
   // DataSources
@@ -458,12 +291,6 @@ Future<void> initLocator() async {
   locator.registerLazySingleton<IntakeDataSource>(
     () => IntakeDataSource(hiveDBProvider.intakeBox),
   );
-  locator.registerLazySingleton<UserActivityDataSource>(
-    () => UserActivityDataSource(hiveDBProvider.userActivityBox),
-  );
-  locator.registerLazySingleton<PhysicalActivityDataSource>(
-    () => PhysicalActivityDataSource(),
-  );
   locator.registerLazySingleton<OFFDataSource>(() => OFFDataSource());
   locator.registerLazySingleton<FDCDataSource>(() => FDCDataSource());
   locator.registerLazySingleton<SpFdcDataSource>(() => SpFdcDataSource());
@@ -472,9 +299,6 @@ Future<void> initLocator() async {
   );
   locator.registerLazySingleton<WeightLogDataSource>(
     () => WeightLogDataSource(hiveDBProvider.weightLogBox),
-  );
-  locator.registerLazySingleton<WaterIntakeDataSource>(
-    () => WaterIntakeDataSource(hiveDBProvider.waterIntakeBox),
   );
   locator.registerLazySingleton(
     () => CustomMealDataSource(hiveDBProvider.customMealBox),
@@ -487,14 +311,6 @@ Future<void> initLocator() async {
       hiveDBProvider.cachedOffMealBox,
       hiveDBProvider.cachedOffMealTimestampsBox,
     ),
-  );
-  locator.registerLazySingleton<CustomActivityTemplateDataSource>(
-    () => CustomActivityTemplateDataSource(
-      hiveDBProvider.customActivityTemplateBox,
-    ),
-  );
-  locator.registerLazySingleton<FastingDataSource>(
-    () => FastingDataSource(hiveDBProvider.fastingBox),
   );
 
   await _initializeConfig(locator());

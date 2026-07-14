@@ -4,7 +4,7 @@
 // The fix for #156 wrapped four files in SafeArea so that persistent bottom
 // UI (a Scaffold.bottomSheet, a BottomAppBar, a sticky Padding-wrapped
 // button, or a list that runs all the way to the bottom edge of the body)
-// doesn't render under the Android gesture-navigation strip on devices that
+// doesn't render under the iOS home indicator on devices that
 // don't reserve insets.
 //
 // This test reads each file in the curated list below and asserts that the
@@ -42,7 +42,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// bottom UI or a body region that reaches the bottom edge of the screen.
 /// Paths are relative to the package root (where `flutter test` runs).
 ///
-/// All five entries here were touched by the #156 fix and are the load-
+/// These entries were touched by the #156 fix and are the load-
 /// bearing rule the test exists to enforce.
 const _screensWithStickyBottomUi = <String>[
   // Search screen — the list of MealItemCard rows (each row has its own
@@ -52,13 +52,11 @@ const _screensWithStickyBottomUi = <String>[
 
   // Scaffolds with a `bottomSheet:` — the bottom sheet sticks to the very
   // bottom of the screen with no scroll padding.
-  'lib/features/activity_detail/activity_detail_screen.dart',
   'lib/features/meal_detail/meal_detail_screen.dart',
 
   // The bottom-sheet widgets themselves — these are the widgets actually
   // hosting the "Add" button. They wrap their content in
   // `SafeArea(top: false)` so the button clears the gesture-nav strip.
-  'lib/features/activity_detail/presentation/widget/activity_detail_bottom_sheet.dart',
   'lib/features/meal_detail/presentation/widgets/meal_detail_bottom_sheet.dart',
 ];
 
@@ -83,7 +81,7 @@ void main() {
           isTrue,
           reason:
               '$relativePath has persistent bottom UI but is missing a '
-              'SafeArea wrap. Bottom buttons will sit under the Android '
+              'SafeArea wrap. Bottom buttons will sit under the iOS '
               'gesture-navigation strip on devices that do not reserve '
               'insets — see issue #156. Wrap the bottom region (or the '
               'whole Scaffold body) in SafeArea(bottom: true).',

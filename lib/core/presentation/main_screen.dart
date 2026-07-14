@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/presentation/widgets/add_item_bottom_sheet.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -66,16 +65,6 @@ class _MainScreenState extends State<MainScreen> {
                     const Icon(Icons.restaurant_outlined),
                     const SizedBox(width: 12),
                     Text(S.of(context).newCustomMealLabel),
-                  ],
-                ),
-              ),
-              PopupMenuItem(
-                value: _RecipesAction.importRecipe,
-                child: Row(
-                  children: [
-                    const Icon(Icons.qr_code_scanner_outlined),
-                    const SizedBox(width: 12),
-                    Text(S.of(context).importRecipeLabel),
                   ],
                 ),
               ),
@@ -186,19 +175,10 @@ class _MainScreenState extends State<MainScreen> {
           ),
         );
         locator<CustomMealsBloc>().add(LoadCustomMealsEvent());
-      case _RecipesAction.importRecipe:
-        await Navigator.of(
-          context,
-        ).pushNamed(NavigationOptions.importRecipeScannerRoute);
-        // The scanner screen itself dispatches LoadRecipesEvent on success,
-        // but cover the cancel-then-reopen flow here too.
-        locator<RecipesBloc>().add(const LoadRecipesEvent());
     }
   }
 
   Future<void> _onFabPressed(BuildContext context) async {
-    final config = await locator<GetConfigUsecase>().getConfig();
-    if (!context.mounted) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -211,11 +191,10 @@ class _MainScreenState extends State<MainScreen> {
       builder: (BuildContext context) {
         return AddItemBottomSheet(
           day: DateTime.now(),
-          showActivityTracking: config.showActivityTracking,
         );
       },
     );
   }
 }
 
-enum _RecipesAction { newRecipe, newCustomMeal, importRecipe }
+enum _RecipesAction { newRecipe, newCustomMeal }

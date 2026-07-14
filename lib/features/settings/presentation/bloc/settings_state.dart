@@ -16,10 +16,8 @@ class SettingsLoadingState extends SettingsState {
 
 class SettingsLoadedState extends SettingsState {
   final String versionNumber;
-  final bool sendAnonymousData;
   final AppThemeEntity appTheme;
   final bool usesImperialUnits;
-  final bool showActivityTracking;
   final bool showMealMacros;
   final bool notificationsEnabled;
   final int notificationHour;
@@ -31,15 +29,11 @@ class SettingsLoadedState extends SettingsState {
   final bool usesKilojoules; // #177
   final int dayStartOffsetHours; // #139
   final int dayStartOffsetMinutes; // #139 follow-up
-  final bool useMaterialYou; // #415
-  final int? accentColor; // #415 follow-up
 
   const SettingsLoadedState(
     this.versionNumber,
-    this.sendAnonymousData,
     this.appTheme,
     this.usesImperialUnits, {
-    this.showActivityTracking = true,
     this.showMealMacros = true,
     this.notificationsEnabled = false,
     this.notificationHour = 8,
@@ -51,17 +45,13 @@ class SettingsLoadedState extends SettingsState {
     this.usesKilojoules = false,
     this.dayStartOffsetHours = 0,
     this.dayStartOffsetMinutes = 0,
-    this.useMaterialYou = true,
-    this.accentColor,
   });
 
   @override
   List<Object?> get props => [
         versionNumber,
-        sendAnonymousData,
         appTheme,
         usesImperialUnits,
-        showActivityTracking,
         showMealMacros,
         notificationsEnabled,
         notificationHour,
@@ -73,7 +63,5 @@ class SettingsLoadedState extends SettingsState {
         usesKilojoules,
         dayStartOffsetHours,
         dayStartOffsetMinutes,
-        useMaterialYou,
-        accentColor,
       ];
 }

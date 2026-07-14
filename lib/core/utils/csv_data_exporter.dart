@@ -1,18 +1,14 @@
-import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/utils/csv_row_parser.dart';
 
-/// Serializes the three exportable Hive datasets (intakes, user activities,
-/// tracked days) to flat CSV alongside the existing JSON export. The same
+/// Serializes the two exportable Hive datasets (intakes and tracked days)
+/// to flat CSV alongside the existing JSON export. The same
 /// utility offers a `parse...FromCsv` symmetry for each format so a round
 /// trip (export -> import) lands at structurally-equal DBOs. The
-/// `csv_meal_importer.dart` already in the codebase only knew how to
-/// import *custom meals*; this module fills the missing leg for the
 /// settings-screen export bundle.
 ///
 /// Why CSV when JSON is already produced: see issues #40 and #132. A
@@ -66,19 +62,6 @@ class CsvDataExporter {
     'vitamin_b6_per_100g',
     'vitamin_b12_per_100g',
     'niacin_per_100g',
-  ];
-
-  static const userActivityColumns = <String>[
-    'id',
-    'date',
-    'duration',
-    'burned_kcal',
-    'activity_code',
-    'specific_activity',
-    'description',
-    'mets',
-    'tags',
-    'type',
   ];
 
   static const trackedDayColumns = <String>[
@@ -144,33 +127,6 @@ class CsvDataExporter {
         _num(n.vitaminB6100),
         _num(n.vitaminB12100),
         _num(n.niacin100),
-      ];
-      buf.writeln(cells.join(','));
-    }
-    return buf.toString();
-  }
-
-  /// Build the user_activities CSV string from a list of [UserActivityDBO].
-  static String userActivitiesToCsv(List<UserActivityDBO> activities) {
-    final buf = StringBuffer();
-    buf.writeln(userActivityColumns.join(','));
-    for (final activity in activities) {
-      final pa = activity.physicalActivityDBO;
-      // tags is a List<String>; serialize with a `|` separator so the
-      // value sits inside a single CSV cell without needing nested
-      // escaping. The parser splits on `|` and trims.
-      final tagsCell = pa.tags.join('|');
-      final cells = <String>[
-        _cell(activity.id),
-        _cell(activity.date.toIso8601String()),
-        _num(activity.duration),
-        _num(activity.burnedKcal),
-        _cell(pa.code),
-        _cell(pa.specificActivity),
-        _cell(pa.description),
-        _num(pa.mets),
-        _cell(tagsCell),
-        _cell(pa.type.name),
       ];
       buf.writeln(cells.join(','));
     }
@@ -270,39 +226,6 @@ class CsvDataExporter {
     return out;
   }
 
-  /// Parse a user_activities CSV back into [UserActivityDBO]s.
-  static List<UserActivityDBO> parseUserActivitiesFromCsv(String csv) {
-    final rows = _parseRows(csv);
-    if (rows.isEmpty) return const [];
-    final header = rows.first;
-    final out = <UserActivityDBO>[];
-    for (var i = 1; i < rows.length; i++) {
-      final row = _zip(header, rows[i]);
-      final rawTags = row['tags'] ?? '';
-      final tags = rawTags.isEmpty
-          ? <String>[]
-          : rawTags.split('|').map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
-      final pa = PhysicalActivityDBO(
-        row['activity_code'] ?? '',
-        row['specific_activity'] ?? '',
-        row['description'] ?? '',
-        CsvRowParser.parseDoubleOrNull(row['mets']) ?? 0,
-        tags,
-        _parsePhysicalActivityType(row['type']),
-      );
-      out.add(
-        UserActivityDBO(
-          row['id'] ?? '',
-          CsvRowParser.parseDoubleOrNull(row['duration']) ?? 0,
-          CsvRowParser.parseDoubleOrNull(row['burned_kcal']) ?? 0,
-          DateTime.parse(row['date'] ?? ''),
-          pa,
-        ),
-      );
-    }
-    return out;
-  }
-
   /// Parse a tracked_days CSV back into [TrackedDayDBO]s.
   static List<TrackedDayDBO> parseTrackedDaysFromCsv(String csv) {
     final rows = _parseRows(csv);
@@ -396,11 +319,4 @@ class CsvDataExporter {
     return MealSourceDBO.unknown;
   }
 
-  static PhysicalActivityTypeDBO _parsePhysicalActivityType(String? raw) {
-    final name = (raw ?? '').toLowerCase().trim();
-    for (final t in PhysicalActivityTypeDBO.values) {
-      if (t.name == name) return t;
-    }
-    return PhysicalActivityTypeDBO.sport;
-  }
 }

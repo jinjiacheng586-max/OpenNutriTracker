@@ -54,18 +54,6 @@ class SourcesScreen extends StatelessWidget {
         ],
       ),
       _SourceEntry(
-        title: l10n.sourcesActivityTitle,
-        description: l10n.sourcesActivityDescription,
-        sources: const [
-          _SourceLink(
-            citation:
-                'Herrmann SD, et al. (2024). 2024 Adult Compendium of '
-                'Physical Activities. Journal of Sport and Health Science.',
-            url: URLConst.sourceActivityCompendium2024URL,
-          ),
-        ],
-      ),
-      _SourceEntry(
         title: l10n.sourcesNonBinaryTitle,
         description: l10n.sourcesNonBinaryDescription,
         sources: const [

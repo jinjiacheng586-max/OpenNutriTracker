@@ -5,32 +5,23 @@ import 'package:opennutritracker/core/presentation/sources_screen.dart';
 import 'package:opennutritracker/core/presentation/widgets/app_banner_version.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
 import 'package:opennutritracker/core/domain/usecase/delete_all_user_data_usecase.dart';
-import 'package:opennutritracker/core/utils/app_const.dart';
-import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/core/utils/energy_unit_provider.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/notification_service.dart';
 import 'package:opennutritracker/core/utils/locale_provider.dart';
 import 'package:opennutritracker/core/utils/theme_mode_provider.dart';
-import 'package:opennutritracker/core/utils/url_const.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/export_import_dialog.dart';
-import 'package:opennutritracker/features/settings/presentation/widgets/import_custom_food_data_dialog.dart';
-import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_visibility_screen.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/diary_day_boundary_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/kcal_adjustment_dialog.dart';
 import 'package:opennutritracker/features/settings/presentation/widgets/macro_split_dialog.dart';
-import 'package:opennutritracker/features/settings/presentation/widgets/nutrient_goals_screen.dart';
-import 'package:opennutritracker/features/settings/presentation/widgets/per_meal_kcal_share_dialog.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -99,11 +90,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _showEnergyUnitDialog(context, state.usesKilojoules),
                   ),
                 ),
-                // The old Calculations dialog had grown into a wall of
-                // sliders covering daily kcal, macros, per-meal split,
-                // ten nutrient goals, and the diary day boundary. Each
-                // is now its own focused entry so people can find the
-                // setting they want and only see the controls for it.
+                // Keep calorie adjustment separate from the other compact
+                // calculation settings.
                 Semantics(
                   identifier: 'settings-kcal-adjustment',
                   child: ListTile(
@@ -121,44 +109,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
                 Semantics(
-                  identifier: 'settings-per-meal-share',
-                  child: ListTile(
-                    leading: const Icon(Icons.restaurant_menu_outlined),
-                    title: Text(S.of(context).settingsPerMealKcalShareLabel),
-                    onTap: () => _showPerMealKcalShareDialog(context),
-                  ),
-                ),
-                Semantics(
-                  identifier: 'settings-nutrient-goals',
-                  child: ListTile(
-                    leading: const Icon(Icons.spa_outlined),
-                    title: Text(S.of(context).settingsNutrientGoalsLabel),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => _openNutrientGoalsScreen(context),
-                  ),
-                ),
-                Semantics(
                   identifier: 'settings-day-boundary',
                   child: ListTile(
                     leading: const Icon(Icons.schedule_outlined),
                     title: Text(S.of(context).settingsDayStartLabel),
                     onTap: () => _showDayBoundaryDialog(context),
                   ),
-                ),
-                SwitchListTile(
-                  secondary: const Icon(Icons.directions_run_outlined),
-                  title: Text(S.of(context).settingsShowActivityTracking),
-                  value: state.showActivityTracking,
-                  onChanged: (bool value) {
-                    _settingsBloc.setShowActivityTracking(value);
-                    _settingsBloc.add(LoadSettingsEvent());
-                    _homeBloc.add(LoadItemsEvent());
-                    // DiaryBloc is a lazy singleton so its loaded state
-                    // survives navigation. Without an explicit reload here the
-                    // diary keeps the stale flag and the per-day Activity
-                    // section stays visible after the user has toggled off.
-                    _diaryBloc.add(const LoadDiaryYearEvent());
-                  },
                 ),
                 SwitchListTile(
                   secondary: const Icon(Icons.bar_chart_outlined),
@@ -179,46 +135,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _settingsBloc.add(LoadSettingsEvent());
                   },
                 ),
-                // #160 follow-up: lets the user pick which nutrients show on
-                // the diary's daily nutrient panel. Lives next to the meal-
-                // detail micronutrient toggle above; both shape what the
-                // user sees from the same underlying nutrient data.
-                Semantics(
-                  identifier: 'settings-nutrient-visibility',
-                  child: ListTile(
-                    leading: const Icon(Icons.tune_outlined),
-                    title: Text(S.of(context).settingsNutrientsLabel),
-                    subtitle: Text(S.of(context).settingsNutrientsSubtitle),
-                    onTap: () => _openNutrientVisibilityScreen(context),
-                  ),
-                ),
                 const Divider(),
                 // App
                 ListTile(
                   leading: const Icon(Icons.brightness_medium_outlined),
                   title: Text(S.of(context).settingsThemeLabel),
                   onTap: () => _showThemeDialog(context, state.appTheme),
-                ),
-                Semantics(
-                  identifier: 'settings-accent-colour',
-                  child: ListTile(
-                    leading: const Icon(Icons.palette_outlined),
-                    title: Text(S.of(context).settingsAccentColourTitle),
-                    subtitle: Text(
-                      _accentSubtitle(
-                        context,
-                        useMaterialYou: state.useMaterialYou,
-                        accentColor: state.accentColor,
-                      ),
-                    ),
-                    trailing: _AccentTrailingSwatch(
-                      useMaterialYou: state.useMaterialYou,
-                      accentColor: state.accentColor,
-                    ),
-                    onTap: () => Navigator.of(context).pushNamed(
-                      NavigationOptions.accentColourRoute,
-                    ),
-                  ),
                 ),
                 ListTile(
                   leading: const Icon(Icons.language_outlined),
@@ -272,14 +194,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 const Divider(),
                 // Data
-                Semantics(
-                  identifier: 'settings-import-custom-food',
-                  child: ListTile(
-                    leading: const Icon(Icons.restaurant_menu_outlined),
-                    title: Text(S.of(context).importCustomFoodDataLabel),
-                    onTap: () => _showImportCustomFoodDataDialog(context),
-                  ),
-                ),
                 ListTile(
                   leading: const Icon(Icons.import_export),
                   title: Text(S.of(context).exportImportAppDataLabel),
@@ -319,12 +233,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Divider(),
                 // About
                 ListTile(
-                  leading: const Icon(Icons.policy_outlined),
-                  title: Text(S.of(context).settingsPrivacySettings),
-                  onTap: () =>
-                      _showPrivacyDialog(context, state.sendAnonymousData),
-                ),
-                ListTile(
                   leading: const Icon(Icons.description_outlined),
                   title: Text(S.of(context).settingsDisclaimerLabel),
                   onTap: () => _showDisclaimerDialog(context),
@@ -335,11 +243,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const SourcesScreen()),
                   ),
-                ),
-                ListTile(
-                  leading: const Icon(Icons.bug_report_outlined),
-                  title: Text(S.of(context).settingsReportErrorLabel),
-                  onTap: () => _showReportErrorDialog(context),
                 ),
                 ListTile(
                   leading: const Icon(Icons.error_outline_outlined),
@@ -386,8 +289,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
         minute: state.notificationMinute,
         title: l10n.notificationsDailyReminderTitle,
         body: l10n.notificationsDailyReminderBody,
-        channelName: l10n.notificationsDailyReminderChannelName,
-        channelDescription: l10n.notificationsDailyReminderChannelDescription,
       );
     } else {
       await notificationService.cancelDailyReminder();
@@ -410,8 +311,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       minute: picked.minute,
       title: l10n.notificationsDailyReminderTitle,
       body: l10n.notificationsDailyReminderBody,
-      channelName: l10n.notificationsDailyReminderChannelName,
-      channelDescription: l10n.notificationsDailyReminderChannelDescription,
     );
     _settingsBloc.add(LoadSettingsEvent());
   }
@@ -566,31 +465,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showPerMealKcalShareDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => PerMealKcalShareDialog(
-        settingsBloc: _settingsBloc,
-        homeBloc: _homeBloc,
-        calendarDayBloc: _calendarDayBloc,
-      ),
-    );
-  }
-
-  void _openNutrientGoalsScreen(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => NutrientGoalsScreen(
-          settingsBloc: _settingsBloc,
-          profileBloc: _profileBloc,
-          diaryBloc: _diaryBloc,
-          calendarDayBloc: _calendarDayBloc,
-          homeBloc: _homeBloc,
-        ),
-      ),
-    );
-  }
-
   void _showDayBoundaryDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -604,19 +478,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _showExportImportDialog(BuildContext context) {
     showDialog(context: context, builder: (context) => ExportImportDialog());
-  }
-
-  void _showImportCustomFoodDataDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => ImportCustomFoodDataDialog(),
-    );
-  }
-
-  void _openNutrientVisibilityScreen(BuildContext context) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => const NutrientVisibilityScreen()),
-    );
   }
 
   Future<void> _confirmClearOffCache(BuildContext context) async {
@@ -755,14 +616,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   static const _supportedLocales = <String, String>{
     'en': 'English',
-    'de': 'Deutsch',
-    'tr': 'Türkçe',
-    'cs': 'Čeština',
-    'it': 'Italiano',
-    'uk': 'Українська',
     'zh': '中文',
-    'pl': 'Polski',
-    'sk': 'Slovenčina',
   };
 
   String? _localeDisplayName(String? code) => _supportedLocales[code];
@@ -841,99 +695,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showReportErrorDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(S.of(context).settingsReportErrorLabel),
-          content: Text(S.of(context).reportErrorDialogText),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(S.of(context).dialogCancelLabel),
-            ),
-            TextButton(
-              onPressed: () async {
-                _reportError(context);
-                Navigator.of(context).pop();
-              },
-              child: Text(S.of(context).dialogOKLabel),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _reportError(BuildContext context) async {
-    final reportUri = Uri.parse(
-      "mailto:${AppConst.reportErrorEmail}?subject=Report_Error",
-    );
-
-    if (await canLaunchUrl(reportUri)) {
-      launchUrl(reportUri);
-    } else {
-      // Cannot open email app, show error snackbar
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).errorOpeningEmail)),
-        );
-      }
-    }
-  }
-
-  void _showPrivacyDialog(
-    BuildContext context,
-    bool hasAcceptedAnonymousData,
-  ) async {
-    bool switchActive = hasAcceptedAnonymousData;
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(S.of(context).settingsPrivacySettings),
-          content: StatefulBuilder(
-            builder:
-                (
-                  BuildContext context,
-                  void Function(void Function()) setState,
-                ) {
-                  return SwitchListTile(
-                    title: Text(S.of(context).sendAnonymousUserData),
-                    value: switchActive,
-                    onChanged: (bool value) {
-                      setState(() {
-                        switchActive = value;
-                      });
-                    },
-                  );
-                },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text(S.of(context).dialogCancelLabel),
-            ),
-            TextButton(
-              onPressed: () async {
-                _settingsBloc.setHasAcceptedAnonymousData(switchActive);
-                if (!switchActive) Sentry.close();
-                _settingsBloc.add(LoadSettingsEvent());
-                Navigator.of(context).pop();
-              },
-              child: Text(S.of(context).dialogOKLabel),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   void _showAboutDialog(BuildContext context) async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     if (context.mounted) {
@@ -950,114 +711,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         applicationVersion: packageInfo.version,
         applicationLegalese: S.of(context).appLicenseLabel,
-        children: [
-          TextButton(
-            onPressed: () {
-              _launchSourceCodeUrl(context);
-            },
-            child: Row(
-              children: [
-                const Icon(Icons.code_outlined),
-                const SizedBox(width: 8.0),
-                Text(S.of(context).settingsSourceCodeLabel),
-              ],
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              _launchPrivacyPolicyUrl(context);
-            },
-            child: Row(
-              children: [
-                const Icon(Icons.policy_outlined),
-                const SizedBox(width: 8.0),
-                Text(S.of(context).privacyPolicyLabel),
-              ],
-            ),
-          ),
-        ],
       );
     }
   }
 
-  void _launchSourceCodeUrl(BuildContext context) async {
-    final sourceCodeUri = Uri.parse(AppConst.sourceCodeUrl);
-    _launchUrl(context, sourceCodeUri);
-  }
-
-  void _launchPrivacyPolicyUrl(BuildContext context) async {
-    final sourceCodeUri = Uri.parse(URLConst.privacyPolicyURLEn);
-    _launchUrl(context, sourceCodeUri);
-  }
-
-  void _launchUrl(BuildContext context, Uri url) async {
-    if (await canLaunchUrl(url)) {
-      launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
-      // Cannot open browser app, show error snackbar
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).errorOpeningBrowser)),
-        );
-      }
-    }
-  }
-}
-
-
-String _accentSubtitle(
-  BuildContext context, {
-  required bool useMaterialYou,
-  required int? accentColor,
-}) {
-  final isAndroid = Theme.of(context).platform == TargetPlatform.android;
-  if (isAndroid && useMaterialYou) {
-    return S.of(context).settingsAccentSubtitleMaterialYou;
-  }
-  if (accentColor != null) {
-    return S.of(context).settingsAccentSubtitleCustom;
-  }
-  return S.of(context).settingsAccentSubtitleDefault;
-}
-
-class _AccentTrailingSwatch extends StatelessWidget {
-  final bool useMaterialYou;
-  final int? accentColor;
-
-  const _AccentTrailingSwatch({
-    required this.useMaterialYou,
-    required this.accentColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
-    if (isAndroid && useMaterialYou) {
-      return Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const SweepGradient(
-            colors: <Color>[
-              Color(0xFFFF5252),
-              Color(0xFFFFD740),
-              Color(0xFF69F0AE),
-              Color(0xFF40C4FF),
-              Color(0xFFB388FF),
-              Color(0xFFFF5252),
-            ],
-          ),
-        ),
-      );
-    }
-    final color = accentColor != null
-        ? Color(accentColor!)
-        : const Color(0xFF43A047); // default green disc preview
-    return Container(
-      width: 24,
-      height: 24,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-    );
-  }
 }

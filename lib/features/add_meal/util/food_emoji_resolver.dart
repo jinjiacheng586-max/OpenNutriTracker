@@ -1,7 +1,7 @@
 /// Maps a food's head noun (first comma-separated token of the
 /// description) to a representative emoji. Rendered as a Text widget so the
 /// platform's color emoji font draws it — Apple Color Emoji on iOS, Noto
-/// Color Emoji on Android.
+/// Apple Color Emoji on iOS.
 ///
 /// Lookup is name-only — no category fallback. USDA descriptions follow
 /// `Head noun, qualifier, qualifier, …`, so the first token is the

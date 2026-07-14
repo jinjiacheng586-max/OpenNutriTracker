@@ -15,14 +15,6 @@ class AddConfigUsecase {
     _configRepository.setConfigDisclaimer(hasAcceptedDisclaimer);
   }
 
-  Future<void> setConfigHasAcceptedAnonymousData(
-    bool hasAcceptedAnonymousData,
-  ) async {
-    await _configRepository.setConfigHasAcceptedAnonymousData(
-      hasAcceptedAnonymousData,
-    );
-  }
-
   Future<void> setConfigAppTheme(AppThemeEntity appTheme) async {
     await _configRepository.setConfigAppTheme(appTheme);
   }
@@ -45,10 +37,6 @@ class AddConfigUsecase {
       proteinGoalPct,
       fatPctGoal,
     );
-  }
-
-  Future<void> setConfigShowActivityTracking(bool show) async {
-    _configRepository.setConfigShowActivityTracking(show);
   }
 
   Future<void> setConfigShowMealMacros(bool show) async {
@@ -75,18 +63,8 @@ class AddConfigUsecase {
     await _configRepository.setConfigUsesKilojoules(usesKilojoules);
   }
 
-  Future<void> setConfigMealKcalSharesPct(Map<String, int> shares) async {
-    await _configRepository.setConfigMealKcalSharesPct(shares);
-  }
-
   Future<void> setDiarySortPreference(String mealKey, int sortIndex) async {
     await _configRepository.setDiarySortPreference(mealKey, sortIndex);
-  }
-
-  Future<void> setConfigNutrientPanelVisibility(
-    Map<String, bool> visibility,
-  ) async {
-    await _configRepository.setConfigNutrientPanelVisibility(visibility);
   }
 
   Future<void> setConfigDayStartOffsetHours(int hours) async {
@@ -97,15 +75,4 @@ class AddConfigUsecase {
     _configRepository.setConfigDayStartOffsetMinutes(minutes);
   }
 
-  Future<void> setConfigDailyWaterGoalMl(int goalMl) async {
-    await _configRepository.setConfigDailyWaterGoalMl(goalMl);
-  }
-
-  Future<void> setConfigUseMaterialYou(bool useMaterialYou) async {
-    await _configRepository.setConfigUseMaterialYou(useMaterialYou);
-  }
-
-  Future<void> setConfigAccentColor(int? value) async {
-    await _configRepository.setConfigAccentColor(value);
-  }
 }

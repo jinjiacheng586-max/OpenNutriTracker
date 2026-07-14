@@ -3,8 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
-import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_or_delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/macro_nutriments_widget.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
@@ -24,7 +22,6 @@ import 'package:provider/provider.dart';
 class DayInfoWidget extends StatefulWidget {
   final DateTime selectedDay;
   final TrackedDayEntity? trackedDayEntity;
-  final List<UserActivityEntity> userActivities;
   final List<IntakeEntity> breakfastIntake;
   final List<IntakeEntity> lunchIntake;
   final List<IntakeEntity> dinnerIntake;
@@ -36,19 +33,9 @@ class DayInfoWidget extends StatefulWidget {
   final double lunchKcalTarget;
   final double dinnerKcalTarget;
   final double snackKcalTarget;
-  // #150 follow-up: per-meal share percentages. A 0% share hides the section
-  // entirely — useful for OMAD / two-meal users who don't want an empty meal
-  // slot they've explicitly opted out of staring back at them.
-  final int breakfastSharePct;
-  final int lunchSharePct;
-  final int dinnerSharePct;
-  final int snackSharePct;
 
   final bool usesImperialUnits;
   final bool showMealMacros;
-  // When the user disables Show Activity Tracking in Settings, the diary's
-  // per-day Activity section is hidden alongside the home one.
-  final bool showActivityTracking;
   // Persisted per-meal sort preference loaded by [CalendarDayBloc]. Keys are
   // meal-type strings (breakfast / lunch / dinner / snack) and values are
   // [DiarySortType] enum indices. Null when the user has never picked a
@@ -57,50 +44,31 @@ class DayInfoWidget extends StatefulWidget {
   final Function(IntakeEntity intake, TrackedDayEntity? trackedDayEntity)
       onDeleteIntake;
   final Function(
-    UserActivityEntity userActivityEntity,
-    TrackedDayEntity? trackedDayEntity,
-  ) onDeleteActivity;
-  final Function(
     IntakeEntity intake,
     TrackedDayEntity? trackedDayEntity,
     AddMealType? type,
   ) onCopyIntake;
-  final Function(
-    UserActivityEntity userActivityEntity,
-    TrackedDayEntity? trackedDayEntity,
-  ) onCopyActivity;
   final Function(BuildContext context, IntakeEntity intake, bool usesImperialUnits)?
       onEditIntake;
-  final Function(BuildContext context, UserActivityEntity activity)?
-      onEditActivity;
 
   const DayInfoWidget({
     super.key,
     required this.selectedDay,
     required this.trackedDayEntity,
-    required this.userActivities,
     required this.breakfastIntake,
     required this.lunchIntake,
     required this.dinnerIntake,
     required this.snackIntake,
     required this.usesImperialUnits,
     this.showMealMacros = true,
-    this.showActivityTracking = true,
     this.diarySortPreferences,
     required this.onDeleteIntake,
-    required this.onDeleteActivity,
     required this.onCopyIntake,
-    required this.onCopyActivity,
     this.onEditIntake,
-    this.onEditActivity,
     this.breakfastKcalTarget = 0,
     this.lunchKcalTarget = 0,
     this.dinnerKcalTarget = 0,
     this.snackKcalTarget = 0,
-    this.breakfastSharePct = 30,
-    this.lunchSharePct = 40,
-    this.dinnerSharePct = 20,
-    this.snackSharePct = 10,
   });
 
   @override
@@ -251,37 +219,13 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
             // iron, potassium, vitamin D, vitamin B12, magnesium) across
             // the day's intake list, with a Day/Week toggle that pulls the
             // previous six days' intakes itself via the locator. The
-            // tracked-day entity is forwarded so the panel can prefer the
-            // user's per-nutrient targets from Settings → Nutrient goals
-            // when they've configured any (#173). No-op when there's
-            // nothing logged for the current day yet.
+            // panel uses the app's published default reference values.
             if (_allIntakes.isNotEmpty)
               DailyNutrientPanel(
                 intakes: _allIntakes,
                 selectedDay: widget.selectedDay,
-                trackedDay: widget.trackedDayEntity,
               ),
-            if (widget.showActivityTracking) ...[
-              const SizedBox(height: 8.0),
-              ActivityVerticalList(
-                day: widget.selectedDay,
-                title: S.of(context).activityLabel,
-                userActivityList: widget.userActivities,
-                onItemLongPressedCallback: onActivityItemLongPressed,
-                onItemTappedCallback: widget.onEditActivity,
-                onCopyActivityCallback:
-                    DateUtils.isSameDay(widget.selectedDay, DateTime.now())
-                        ? null
-                        : (activity) =>
-                            widget.onCopyActivity(activity, widget.trackedDayEntity),
-              ),
-            ],
-            // #150 follow-up: a 0% share hides the section entirely so OMAD
-            // users (and anyone else who's set a meal slot to 0%) don't see
-            // a meal type they explicitly opted out of. Logged intakes for a
-            // hidden section still count toward the day's totals.
-            if (widget.breakfastSharePct > 0)
-              IntakeVerticalList(
+            IntakeVerticalList(
                 day: widget.selectedDay,
                 title: S.of(context).breakfastLabel,
                 listIcon: Icons.bakery_dining_outlined,
@@ -303,8 +247,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onSortTypeChanged: (sort) =>
                     _setSortFor(IntakeTypeEntity.breakfast, sort),
               ),
-            if (widget.lunchSharePct > 0)
-              IntakeVerticalList(
+            IntakeVerticalList(
                 day: widget.selectedDay,
                 title: S.of(context).lunchLabel,
                 listIcon: Icons.lunch_dining_outlined,
@@ -326,8 +269,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onSortTypeChanged: (sort) =>
                     _setSortFor(IntakeTypeEntity.lunch, sort),
               ),
-            if (widget.dinnerSharePct > 0)
-              IntakeVerticalList(
+            IntakeVerticalList(
                 day: widget.selectedDay,
                 title: S.of(context).dinnerLabel,
                 listIcon: Icons.dinner_dining_outlined,
@@ -348,8 +290,7 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
                 onSortTypeChanged: (sort) =>
                     _setSortFor(IntakeTypeEntity.dinner, sort),
               ),
-            if (widget.snackSharePct > 0)
-              IntakeVerticalList(
+            IntakeVerticalList(
                 day: widget.selectedDay,
                 title: S.of(context).snackLabel,
                 listIcon: CustomIcons.food_apple_outline,
@@ -463,30 +404,4 @@ class _DayInfoWidgetState extends State<DayInfoWidget> {
     }
   }
 
-  void onActivityItemLongPressed(
-    BuildContext context,
-    UserActivityEntity activityEntity,
-  ) async {
-    if (DateUtils.isSameDay(widget.selectedDay, DateTime.now())) {
-      final shouldDelete = await showDialog<bool>(
-        context: context,
-        builder: (context) => const DeleteDialog(),
-      );
-      if (shouldDelete != null) {
-        widget.onDeleteActivity(activityEntity, widget.trackedDayEntity);
-      }
-    } else {
-      final copyOrDelete = await showDialog<bool>(
-        context: context,
-        builder: (context) => const CopyOrDeleteDialog(),
-      );
-      if (context.mounted) {
-        if (copyOrDelete == false) {
-          widget.onDeleteActivity(activityEntity, widget.trackedDayEntity);
-        } else if (copyOrDelete == true) {
-          widget.onCopyActivity(activityEntity, widget.trackedDayEntity);
-        }
-      }
-    }
-  }
 }

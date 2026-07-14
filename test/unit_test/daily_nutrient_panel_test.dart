@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
-import 'package:opennutritracker/core/domain/entity/app_theme_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/daily_nutrient_panel.dart';
@@ -202,43 +200,6 @@ void main() {
       expect(totals.fiberG, 0.0);
       expect(totals.ironMg, 0.0);
       expect(totals.vitaminB12Mcg, 0.0);
-    });
-  });
-
-  group('ConfigEntity.isNutrientVisible', () {
-    /// A minimal config — most fields don't matter for visibility behaviour.
-    ConfigEntity withVisibility(Map<String, bool> v) => ConfigEntity(
-          false,
-          false,
-          false,
-          AppThemeEntity.system,
-          nutrientPanelVisibility: v,
-        );
-
-    test('defaults to visible when the map is empty', () {
-      final config = withVisibility(const {});
-      for (final key in NutrientPanelKeys.all) {
-        expect(config.isNutrientVisible(key), isTrue, reason: 'key=$key');
-      }
-    });
-
-    test('honours explicit false overrides', () {
-      final config = withVisibility(const {
-        NutrientPanelKeys.vitaminD: false,
-        NutrientPanelKeys.magnesium: false,
-      });
-      expect(config.isNutrientVisible(NutrientPanelKeys.vitaminD), isFalse);
-      expect(config.isNutrientVisible(NutrientPanelKeys.magnesium), isFalse);
-      // Unrelated keys still default to visible.
-      expect(config.isNutrientVisible(NutrientPanelKeys.iron), isTrue);
-      expect(config.isNutrientVisible(NutrientPanelKeys.fiber), isTrue);
-    });
-
-    test('honours explicit true overrides as a no-op', () {
-      final config = withVisibility(const {
-        NutrientPanelKeys.iron: true,
-      });
-      expect(config.isNutrientVisible(NutrientPanelKeys.iron), isTrue);
     });
   });
 

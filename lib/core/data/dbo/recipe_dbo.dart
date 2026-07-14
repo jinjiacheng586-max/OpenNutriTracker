@@ -50,7 +50,7 @@ class RecipeDBO extends HiveObject {
   // Relative path to a user-attached photo, under the app's private
   // documents directory (e.g. `recipe_images/<id>.webp`). Storing the
   // relative slug — not the absolute path — keeps the value stable across
-  // iOS sandbox refreshes and Android app reinstalls, where the documents
+  // iOS sandbox refreshes, where the documents
   // directory's parent path can change.
   @HiveField(11)
   final String? imagePath;

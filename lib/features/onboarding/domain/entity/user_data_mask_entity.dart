@@ -22,8 +22,6 @@ class UserDataMaskEntity {
   /// regardless of the display unit the user picked.
   double? targetWeight;
 
-  bool acceptDataCollection = false;
-
   bool usesImperialUnits = false;
 
   UserDataMaskEntity({
@@ -35,7 +33,6 @@ class UserDataMaskEntity {
     this.activity,
     this.goal,
     this.targetWeight,
-    this.acceptDataCollection = false,
     this.usesImperialUnits = false,
   });
 

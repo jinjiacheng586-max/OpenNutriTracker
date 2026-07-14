@@ -34,7 +34,7 @@ enum UserImageKind {
 /// recipes and meals stays in the low-megabyte range, while still
 /// being plenty crisp for a list thumbnail and the detail-screen
 /// header. WebP roughly halves the bytes of an equivalent-quality JPEG
-/// and is supported natively on every Android and iOS version the app
+/// and is supported natively on every iOS version the app
 /// targets.
 class UserImageStorage {
   static const String _extension = 'webp';

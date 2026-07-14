@@ -90,8 +90,8 @@ run_case "compatible-versions form, top-level pod" \
 
 run_case "compatible-versions form, subspec reduces to root pod" \
   1 \
-  '[!] CocoaPods could not find compatible versions for pod "Sentry/HybridSDK":' \
-  'Sentry'
+  '[!] CocoaPods could not find compatible versions for pod "ExampleSDK/Core":' \
+  'ExampleSDK'
 
 run_case "missing-specification form" \
   1 \
@@ -100,8 +100,8 @@ run_case "missing-specification form" \
 
 run_case "none-of-your-sources form, subspec reduces to root pod" \
   1 \
-  'None of your spec sources contain a spec satisfying the dependency: `Sentry/HybridSDK (= 8.58.0)`.' \
-  'Sentry'
+  'None of your spec sources contain a spec satisfying the dependency: `ExampleSDK/Core (= 1.0.0)`.' \
+  'ExampleSDK'
 
 run_case "multiple failures with duplicate subspec roots dedup" \
   1 \
@@ -117,9 +117,9 @@ run_case "unparseable failure falls back to full pod update" \
 
 run_case "compatible-versions and none-of-your-sources together still dedup" \
   1 \
-  '[!] CocoaPods could not find compatible versions for pod "Sentry/HybridSDK":
-None of your spec sources contain a spec satisfying the dependency: `Sentry/HybridSDK (= 8.58.0)`.' \
-  'Sentry'
+  '[!] CocoaPods could not find compatible versions for pod "ExampleSDK/Core":
+None of your spec sources contain a spec satisfying the dependency: `ExampleSDK/Core (= 1.0.0)`.' \
+  'ExampleSDK'
 
 echo
 echo "Tests run: $tests_run, failures: $tests_failed"

@@ -6,7 +6,6 @@ import 'package:opennutritracker/core/utils/retry_util.dart';
 import 'package:opennutritracker/core/utils/supported_language.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc_sp/sp_const.dart';
 import 'package:opennutritracker/features/add_meal/data/dto/fdc_sp/sp_fdc_food_dto.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SpFdcDataSource {
@@ -40,8 +39,7 @@ class SpFdcDataSource {
         return fdcFoodItems;
       });
     } catch (exception, stacktrace) {
-      log.severe('Exception while getting FDC word search $exception');
-      Sentry.captureException(exception, stackTrace: stacktrace);
+      log.severe('Exception while getting FDC word search', exception, stacktrace);
       return Future.error(exception);
     }
   }

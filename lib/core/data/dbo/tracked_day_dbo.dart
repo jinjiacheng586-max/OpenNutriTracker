@@ -97,16 +97,6 @@ class TrackedDayDBO extends HiveObject {
       fatTracked: entity.fatTracked,
       proteinGoal: entity.proteinGoal,
       proteinTracked: entity.proteinTracked,
-      fibreGoal: entity.fibreGoal,
-      satFatGoal: entity.satFatGoal,
-      sugarsGoal: entity.sugarsGoal,
-      sodiumGoal: entity.sodiumGoal,
-      calciumGoal: entity.calciumGoal,
-      ironGoal: entity.ironGoal,
-      potassiumGoal: entity.potassiumGoal,
-      vitaminDGoal: entity.vitaminDGoal,
-      vitaminB12Goal: entity.vitaminB12Goal,
-      magnesiumGoal: entity.magnesiumGoal,
     );
   }
 

@@ -3,51 +3,40 @@ import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:opennutritracker/core/data/data_source/custom_activity_template_dbo.dart';
-import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/recipe_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/weight_log_dbo.dart';
-import 'package:opennutritracker/core/data/repository/custom_activity_template_repository.dart';
 import 'package:opennutritracker/core/data/repository/intake_repository.dart';
 import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/data/repository/tracked_day_repository.dart';
-import 'package:opennutritracker/core/data/repository/user_activity_repository.dart';
 import 'package:opennutritracker/core/data/repository/weight_log_repository.dart';
 import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
 import 'package:opennutritracker/core/utils/user_image_storage.dart';
 
 class ImportDataUsecase {
-  final UserActivityRepository _userActivityRepository;
   final IntakeRepository _intakeRepository;
   final TrackedDayRepository _trackedDayRepository;
   final RecipeRepository _recipeRepository;
   final WeightLogRepository _weightLogRepository;
-  final CustomActivityTemplateRepository _customActivityTemplateRepository;
 
   ImportDataUsecase(
-    this._userActivityRepository,
     this._intakeRepository,
     this._trackedDayRepository,
     this._recipeRepository,
     this._weightLogRepository,
-    this._customActivityTemplateRepository,
   );
 
-  /// Imports user activity, intake, tracked day, and (optionally) recipe,
-  /// weight log or Custom activity template data from a zip file
-  /// containing JSON files. Recipe, weight log and template files are
+  /// Imports intakes, tracked days, recipes, and weight logs from a zip file.
+  /// containing JSON files. Recipe and weight-log files are
   /// treated as optional so zips exported by older versions still import.
   ///
   /// Returns true if import was successful, false otherwise.
   Future<bool> importData(
-    String userActivityJsonFileName,
     String userIntakeJsonFileName,
     String trackedDayJsonFileName,
     String recipeJsonFileName,
     String weightLogJsonFileName,
-    String customActivityTemplateJsonFileName,
   ) async {
     // Allow user to pick a zip file
     final result = await FilePicker.pickFiles(
@@ -63,24 +52,6 @@ class ImportDataUsecase {
     final file = File(result.files.single.path!);
     final zipBytes = await file.readAsBytes();
     final archive = ZipDecoder().decodeBytes(zipBytes);
-
-    // Extract and process user activity data
-    final userActivityFile = archive.findFile(userActivityJsonFileName);
-    if (userActivityFile != null) {
-      final userActivityJsonString = utf8.decode(
-        userActivityFile.content as List<int>,
-      );
-      final userActivityList = (jsonDecode(userActivityJsonString) as List)
-          .cast<Map<String, dynamic>>();
-
-      final userActivityDBOs = userActivityList
-          .map((json) => UserActivityDBO.fromJson(json))
-          .toList();
-
-      await _userActivityRepository.addAllUserActivityDBOs(userActivityDBOs);
-    } else {
-      throw Exception('User activity file not found in the archive');
-    }
 
     // Extract and process intake data
     final intakeFile = archive.findFile(userIntakeJsonFileName);
@@ -137,20 +108,6 @@ class ImportDataUsecase {
       await _weightLogRepository.addAllEntries(weightLogDBOs);
     }
 
-    // Extract and process Custom activity template data (#70 follow-up)
-    // — also optional so zips produced before templates landed still import.
-    final templateFile = archive.findFile(customActivityTemplateJsonFileName);
-    if (templateFile != null) {
-      final templateJsonString =
-          utf8.decode(templateFile.content as List<int>);
-      final templateList = (jsonDecode(templateJsonString) as List)
-          .cast<Map<String, dynamic>>();
-      final templateDBOs = templateList
-          .map((json) => CustomActivityTemplateDBO.fromJson(json))
-          .toList();
-      await _customActivityTemplateRepository.addAllTemplateDBOs(templateDBOs);
-    }
-
     // Restore any user-attached photos — recipes under `recipe_images/`
     // and custom meals under `meal_images/`. Each archive entry's name
     // already matches the relative slug we stored on the matching DBO,
@@ -179,14 +136,13 @@ class ImportDataUsecase {
   /// Symmetric CSV counterpart to [importData]. Reads a zip produced by
   /// `ExportDataUsecase.exportData(format: ExportFormat.csv)` and feeds
   /// each CSV through the matching `parse...FromCsv` helper on
-  /// [CsvDataExporter]. Recipes, photos, the weight log and Custom
-  /// activity templates are intentionally not handled here — CSV export
+  /// [CsvDataExporter]. Recipes, photos, and weight logs are intentionally
+  /// not handled here — CSV export
   /// omits them by design (nested or binary shapes don't flatten
   /// cleanly), so a CSV-only round trip does not restore them. A user
   /// who needs them in their backup should choose the JSON format
   /// instead.
   Future<bool> importDataCsv({
-    String userActivityCsvFileName = 'user_activity.csv',
     String userIntakeCsvFileName = 'user_intake.csv',
     String trackedDayCsvFileName = 'user_tracked_day.csv',
   }) async {
@@ -198,15 +154,6 @@ class ImportDataUsecase {
     final file = File(result.files.single.path!);
     final zipBytes = await file.readAsBytes();
     final archive = ZipDecoder().decodeBytes(zipBytes);
-
-    final activityFile = archive.findFile(userActivityCsvFileName);
-    if (activityFile != null) {
-      final csv = utf8.decode(activityFile.content as List<int>);
-      final dbos = CsvDataExporter.parseUserActivitiesFromCsv(csv);
-      await _userActivityRepository.addAllUserActivityDBOs(dbos);
-    } else {
-      throw Exception('User activity CSV not found in the archive');
-    }
 
     final intakeFile = archive.findFile(userIntakeCsvFileName);
     if (intakeFile != null) {

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:opennutritracker/core/data/repository/recipe_repository.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/copy_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_all_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/intake_card.dart';
 import 'package:opennutritracker/core/presentation/widgets/placeholder_card.dart';
-import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart';
 import 'package:opennutritracker/core/utils/energy_display.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
@@ -16,9 +14,7 @@ import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.da
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 import 'package:opennutritracker/features/diary/presentation/widgets/diary_sort_type.dart';
-import 'package:opennutritracker/features/home/domain/entity/shared_meal_payload.dart';
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
-import 'package:opennutritracker/features/home/presentation/screens/import_meal_scanner_screen.dart';
 import 'package:opennutritracker/features/meal_detail/presentation/bloc/meal_detail_bloc.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -196,32 +192,6 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                             }
                             break;
                           }
-                        case VerticalListPopupMenuSelections.onShare:
-                          if (context.mounted) {
-                            final code = SharedMealPayload.fromIntakeList(
-                              widget.intakeList,
-                              recipeRepository: locator<RecipeRepository>(),
-                            ).toJsonString();
-                            await showDialog(
-                              context: context,
-                              builder: (_) => ShareQrDialog(
-                                title: S.of(context).shareMealLabel,
-                                code: code,
-                                fileBaseName: 'meal_qr',
-                              ),
-                            );
-                          }
-                        case VerticalListPopupMenuSelections.onImport:
-                          if (context.mounted) {
-                            Navigator.of(context).pushNamed(
-                              NavigationOptions.importMealScannerRoute,
-                              arguments: ImportMealScannerArguments(
-                                widget.addMealType.getIntakeType(),
-                                widget.addMealType,
-                                widget.day,
-                              ),
-                            );
-                          }
                       }
                     },
                     itemBuilder: (BuildContext context) =>
@@ -235,13 +205,6 @@ class _IntakeVerticalListState extends State<IntakeVerticalList> {
                             PopupMenuItem<VerticalListPopupMenuSelections>(
                                 value: VerticalListPopupMenuSelections.onDelete,
                                 child: Text(S.of(context).deleteAllLabel)),
-                          if (totalKcal > 0)
-                            PopupMenuItem<VerticalListPopupMenuSelections>(
-                                value: VerticalListPopupMenuSelections.onShare,
-                                child: Text(S.of(context).shareMealLabel)),
-                          PopupMenuItem<VerticalListPopupMenuSelections>(
-                              value: VerticalListPopupMenuSelections.onImport,
-                              child: Text(S.of(context).importMealLabel)),
                         ]),
             ],
           ),

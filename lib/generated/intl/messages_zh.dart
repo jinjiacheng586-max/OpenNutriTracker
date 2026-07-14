@@ -197,8 +197,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "createCustomDialogTitle":
             MessageLookupByLibrary.simpleMessage("创建自定义餐食项目？"),
         "createRecipeTitle": MessageLookupByLibrary.simpleMessage("创建食谱"),
-        "csvImportContributeOffAndroidLink":
-            MessageLookupByLibrary.simpleMessage("Android"),
         "csvImportContributeOffIosLink":
             MessageLookupByLibrary.simpleMessage("iOS"),
         "csvImportContributeOffPrefix": MessageLookupByLibrary.simpleMessage(
@@ -1035,11 +1033,7 @@ class MessageLookup extends MessageLookupByLibrary {
             MessageLookupByLibrary.simpleMessage("每日千卡调整"),
         "settingsLabel": MessageLookupByLibrary.simpleMessage("设置"),
         "settingsLanguageLabel": MessageLookupByLibrary.simpleMessage("语言"),
-        "settingsMaterialYouTitle":
-            MessageLookupByLibrary.simpleMessage("使用系统颜色"),
-        "settingsMaterialYouSubtitle": MessageLookupByLibrary.simpleMessage("在 Android 12 及更高版本上,使用你壁纸的强调色。"),
         "settingsAccentColourTitle": MessageLookupByLibrary.simpleMessage("强调色"),
-        "settingsAccentSubtitleMaterialYou": MessageLookupByLibrary.simpleMessage("Material You"),
         "settingsAccentSubtitleCustom": MessageLookupByLibrary.simpleMessage("自定义"),
         "settingsAccentSubtitleDefault": MessageLookupByLibrary.simpleMessage("默认"),
         "settingsAccentPresetsHeader": MessageLookupByLibrary.simpleMessage("选择颜色"),

@@ -10,7 +10,7 @@
 /// to tell `288,12,5` (288 followed by 12.5) apart from `288,12,5`
 /// (three integers) without column-aware reasoning that the parser
 /// doesn't have. The importers surface a hint about quoting in their
-/// "too many columns" error path, and the in-app sample CSVs set the
+/// "too many columns" error path, and CSV exports set the
 /// expectation by example.
 class CsvRowParser {
   /// Split [line] into cells. Handles double-quoted fields (with

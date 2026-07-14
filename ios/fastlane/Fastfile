@@ -18,7 +18,7 @@ platform :ios do
     # what App Store distribution should ever pick up.
     #
     # No --build-number: flutter takes CFBundleVersion from the pubspec build
-    # number (the +N in `version:`), so iOS and Android share one build number
+    # number (the +N in `version:`), which is used as the iOS build number
     # sourced from pubspec instead of iOS using the CI run number.
     sh('cd .. && fvm flutter build ipa --release --flavor full --export-method app-store')
   end
@@ -97,5 +97,4 @@ platform :ios do
     ipa
   end
 end
-
 

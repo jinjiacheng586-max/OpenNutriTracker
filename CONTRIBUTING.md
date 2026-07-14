@@ -2,7 +2,7 @@
 
 Thanks for taking an interest in contributing! This guide covers the conventions you need to follow so your pull request can be merged smoothly.
 
-For environment setup (Flutter / Android SDK / IDE), see [GettingStarted.md](GettingStarted.md).
+For the macOS, Flutter, and Xcode setup, see [GettingStarted.md](GettingStarted.md).
 
 ## Pull request target branch
 
@@ -29,21 +29,14 @@ Source strings live in `lib/l10n/intl_en.arb`. Translations live in a separate A
 
 When adding a new string key in the same PR you must:
 
-1. **Add the key to every ARB file** under `lib/l10n/`. The currently supported locales are:
+1. **Add the key to both ARB files** under `lib/l10n/`. The supported locales are:
 
    | File | Language |
    | --- | --- |
    | `intl_en.arb` | English (source) |
-   | `intl_de.arb` | German |
-   | `intl_cs.arb` | Czech |
-   | `intl_it.arb` | Italian |
-   | `intl_pl.arb` | Polish |
-   | `intl_sk.arb` | Slovak |
-   | `intl_tr.arb` | Turkish |
-   | `intl_uk.arb` | Ukrainian |
    | `intl_zh.arb` | Chinese (Simplified) |
 
-   Provide a real translation for each locale — do not leave the English string in as a placeholder. If you only speak one of the languages, machine translation is acceptable as a starting point; native-speaker review is welcome post-merge.
+   Provide a real English and Chinese translation for each key.
 
 2. **Add a getter to `lib/generated/l10n.dart`**, following the existing style.
 
@@ -76,7 +69,7 @@ A body explaining the *why* is welcome but not required for small changes.
 
 ## Platform support
 
-OpenNutriTracker ships on both iOS and Android. Any new dependency must support both platforms — check pub.dev before adding. Any platform-specific code must have a corresponding implementation for the other platform (or an explicit fallback). New runtime permissions on Android need a matching `Info.plist` entry on iOS, and vice versa.
+This fork targets iOS only. Any new dependency must support iOS, and every new protected capability must include the matching entitlement and purpose string required by Apple.
 
 ## Questions
 

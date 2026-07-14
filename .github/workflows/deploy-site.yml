@@ -1,10 +1,7 @@
 # Deploy the project landing page (docs/site/) to GitHub Pages.
 #
-# Fires automatically on push to `main` when files under docs/site/
-# change — i.e. when a release merge lands the new release-info.json
-# (or any other site change) on the release branch. Can also be kicked
-# off by hand from the Actions tab via workflow_dispatch when testing
-# a deploy from a non-default branch.
+# Fires automatically on pushes to `main` that change the site, and can also
+# be started manually from the Actions tab.
 #
 # Pages source in repo settings must be set to "GitHub Actions" (not
 # "Deploy from a branch") for this workflow to take effect.
@@ -24,9 +21,7 @@ permissions:
   pages: write
   id-token: write
 
-# Only one Pages deployment can be in flight at a time; queue new ones
-# rather than cancel the in-flight build so a fresh release-info.json
-# always reaches the public URL.
+# Only one Pages deployment can be in flight at a time.
 concurrency:
   group: pages
   cancel-in-progress: false

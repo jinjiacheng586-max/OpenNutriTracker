@@ -81,17 +81,15 @@ class ConfigDBO extends HiveObject {
   // (and never-opened users) keep being treated as "not yet acknowledged".
   @HiveField(25)
   bool? fastingWarningAcknowledged;
-  // #415: opt-in Material You dynamic colour scheme. Null means the user
-  // has not made a deliberate choice yet, which the UI treats as "on" — the
-  // wallpaper-derived palette only actually appears on Android 12+, and on
-  // every other platform the static palette is what shows up regardless.
+  // Legacy cross-platform theme preference retained at its original Hive
+  // field ID so existing exports and local databases remain readable. The
+  // iOS-only app no longer exposes or uses this setting.
   @HiveField(20)
   bool? useMaterialYou;
   // #415 follow-up: custom accent colour packed as a 32-bit ARGB value
   // (e.g. 0xFFFF5733). Stores the full colour rather than just a hue so
   // hex entry can round-trip without losing saturation or lightness.
-  // Null means "use the platform default" — Material You on Android 12+,
-  // the static palette elsewhere.
+  // Null means use the app's default palette.
   @HiveField(26)
   int? accentColor;
 

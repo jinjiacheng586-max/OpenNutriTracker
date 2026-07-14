@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:opennutritracker/core/domain/entity/calories_profile_entity.dart';
-import 'package:opennutritracker/core/domain/entity/config_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
-import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_entity.dart';
 import 'package:opennutritracker/core/domain/entity/user_gender_entity.dart';
-import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
 import 'package:opennutritracker/core/utils/calc/dri_reference.dart';
@@ -30,9 +27,6 @@ import 'package:url_launcher/url_launcher.dart';
 ///     single low-iron day was actually an outlier; references stay the
 ///     same. The previous days' intakes are fetched via [GetIntakeUsecase]
 ///     in [didChangeDependencies] and again whenever [selectedDay] changes.
-///   * a per-nutrient show/hide map persisted on [ConfigEntity]. Defaults to
-///     "everything visible"; the user can hide individual nutrients from
-///     Settings → Nutrients (see [NutrientPanelKeys]).
 ///
 /// Computation is on the fly from [intakes] (plus the fetched week window
 /// when Week is selected). PR #314 added the per-meal micronutrient fields
@@ -44,23 +38,15 @@ class DailyNutrientPanel extends StatefulWidget {
   /// rolling average (today + the previous 6 days). Defaults to "today".
   final DateTime? selectedDay;
 
-  /// Forwarded from the diary day view so the panel can prefer the user's
-  /// per-nutrient goals (set in Settings → Nutrient goals, #173) over
-  /// the published daily references. Null on days the user hasn't tracked
-  /// yet — in which case the panel falls back to the default DRIs.
-  final TrackedDayEntity? trackedDay;
-
   const DailyNutrientPanel({
     super.key,
     required this.intakes,
     this.selectedDay,
-    this.trackedDay,
   });
 
   // ---- Default daily references (#173) ----------------------------------
-  // Published DRIs / FDA Daily Values used when the user hasn't set their
-  // own target in Settings → Nutrient goals. Iron and magnesium default
-  // to a gender-aware value; the rest are gender-neutral.
+  // Published DRIs / FDA Daily Values. Iron and magnesium use a
+  // gender-aware value; the rest are gender-neutral.
   static const double defaultFibreRefG = 30.0;
   static const double defaultSaturatedFatRefG = 20.0;
   static const double defaultSugarRefG = 50.0;
@@ -70,45 +56,6 @@ class DailyNutrientPanel extends StatefulWidget {
   static const double defaultVitaminDRefUg = 15.0;
   static const double defaultVitaminB12RefUg = 2.4;
   static const double defaultMagnesiumRefMg = 355.0; // non-binary midpoint
-
-  /// Pure helpers that prefer the user's [TrackedDayEntity] per-nutrient
-  /// goal when set, falling back to the published default otherwise.
-  /// Public because the unit test suite asserts each one in isolation.
-  static double resolveFibreReference(TrackedDayEntity? trackedDay) =>
-      trackedDay?.fibreGoal ?? defaultFibreRefG;
-
-  static double resolveSatFatReference(TrackedDayEntity? trackedDay) =>
-      trackedDay?.satFatGoal ?? defaultSaturatedFatRefG;
-
-  static double resolveSugarsReference(TrackedDayEntity? trackedDay) =>
-      trackedDay?.sugarsGoal ?? defaultSugarRefG;
-
-  static double resolveSodiumReference(TrackedDayEntity? trackedDay) =>
-      trackedDay?.sodiumGoal ?? defaultSodiumRefMg;
-
-  static double resolveCalciumReference(TrackedDayEntity? trackedDay) =>
-      trackedDay?.calciumGoal ?? defaultCalciumRefMg;
-
-  /// Iron uses a gender-aware default that the caller supplies, since the
-  /// female / male DRIs (18 vs 8 mg) are far enough apart that an averaged
-  /// number would mislead one group.
-  static double resolveIronReference(
-    TrackedDayEntity? trackedDay,
-    double genderDefault,
-  ) =>
-      trackedDay?.ironGoal ?? genderDefault;
-
-  static double resolvePotassiumReference(TrackedDayEntity? trackedDay) =>
-      trackedDay?.potassiumGoal ?? defaultPotassiumRefMg;
-
-  static double resolveVitaminDReference(TrackedDayEntity? trackedDay) =>
-      trackedDay?.vitaminDGoal ?? defaultVitaminDRefUg;
-
-  static double resolveVitaminB12Reference(TrackedDayEntity? trackedDay) =>
-      trackedDay?.vitaminB12Goal ?? defaultVitaminB12RefUg;
-
-  static double resolveMagnesiumReference(TrackedDayEntity? trackedDay) =>
-      trackedDay?.magnesiumGoal ?? defaultMagnesiumRefMg;
 
   @override
   State<DailyNutrientPanel> createState() => _DailyNutrientPanelState();
@@ -134,7 +81,7 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
     super.didUpdateWidget(oldWidget);
     // The parent passes a fresh intake list whenever the day changes or an
     // intake is added/removed. Refetch so the weekly average stays accurate
-    // and the visibility map picks up any Settings edits.
+    // whenever the selected day or its intakes change.
     if (oldWidget.intakes != widget.intakes ||
         oldWidget.selectedDay != widget.selectedDay) {
       _panelDataFuture = _loadPanelData();
@@ -163,14 +110,6 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
       user = null;
     }
 
-    Map<String, bool> visibility = const <String, bool>{};
-    try {
-      final config = await locator<GetConfigUsecase>().getConfig();
-      visibility = config.nutrientPanelVisibility;
-    } catch (_) {
-      // Tests without the locator wired up — default to "all visible".
-    }
-
     List<IntakeEntity> weekIntakes = widget.intakes;
     try {
       final anchor = widget.selectedDay ?? DateTime.now();
@@ -183,7 +122,6 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
 
     return _PanelData(
       user: user,
-      visibility: visibility,
       weekIntakes: weekIntakes,
     );
   }
@@ -205,7 +143,6 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
 
   Widget _buildPanel(BuildContext context, _PanelData? data) {
     final user = data?.user;
-    final visibility = data?.visibility ?? const <String, bool>{};
     // Pick the right source for totals. Daily view sums today's intakes;
     // weekly view sums the seven-day window and then divides each total by
     // seven to get an average daily intake.
@@ -228,21 +165,12 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
     // magnesium follows the same gender-aware pattern (400/310). Non-binary
     // users get a midpoint, in line with the app's existing averaged-
     // reference convention for non-binary calculations.
-    // Per-nutrient targets — route through the public resolver helpers so
-    // the unit tests and the build method share a single source of truth.
-    final td = widget.trackedDay;
-    // Helper: prefer the per-day tracked override, then the IOM age-banded
-    // DRI when a user record is available, then the gender-agnostic default
-    // the panel has always used as a last resort. This keeps the existing
-    // resolver helpers as the single source of truth for tests, but layers
-    // the age-aware IOM lookup (#245) on top for users we know enough about.
+    // Prefer the IOM age-banded DRI when a user record is available, then
+    // fall back to a sensible adult reference.
     double resolveWithDri(
-      double? Function() trackedOverride,
       String nutrientKey,
       double fallback,
     ) {
-      final tracked = trackedOverride();
-      if (tracked != null) return tracked;
       if (user != null) {
         final dri = getReferenceFor(nutrient: nutrientKey, user: user);
         if (dri != null) return dri.amount;
@@ -251,46 +179,38 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
     }
 
     final fiberRefG = resolveWithDri(
-      () => td?.fibreGoal,
       NutrientPanelKeys.fiber,
       DailyNutrientPanel.defaultFibreRefG,
     );
     final sodiumRefMg = resolveWithDri(
-      () => td?.sodiumGoal,
       NutrientPanelKeys.sodium,
       DailyNutrientPanel.defaultSodiumRefMg,
     );
     // Saturated fat and sugars have no IOM RDA — the resolver helper still
     // returns the published FDA Daily Value as the fallback for both.
-    final saturatedFatRefG = DailyNutrientPanel.resolveSatFatReference(td);
-    final sugarRefG = DailyNutrientPanel.resolveSugarsReference(td);
+    const saturatedFatRefG = DailyNutrientPanel.defaultSaturatedFatRefG;
+    const sugarRefG = DailyNutrientPanel.defaultSugarRefG;
     final calciumRefMg = resolveWithDri(
-      () => td?.calciumGoal,
       NutrientPanelKeys.calcium,
       DailyNutrientPanel.defaultCalciumRefMg,
     );
     final ironRefMg = resolveWithDri(
-      () => td?.ironGoal,
       NutrientPanelKeys.iron,
       _ironRefForUser(user),
     );
     final potassiumRefMg = resolveWithDri(
-      () => td?.potassiumGoal,
       NutrientPanelKeys.potassium,
       DailyNutrientPanel.defaultPotassiumRefMg,
     );
     final vitaminDRefMcg = resolveWithDri(
-      () => td?.vitaminDGoal,
       NutrientPanelKeys.vitaminD,
       DailyNutrientPanel.defaultVitaminDRefUg,
     );
     final vitaminB12RefMcg = resolveWithDri(
-      () => td?.vitaminB12Goal,
       NutrientPanelKeys.vitaminB12,
       DailyNutrientPanel.defaultVitaminB12RefUg,
     );
     final magnesiumRefMg = resolveWithDri(
-      () => td?.magnesiumGoal,
       NutrientPanelKeys.magnesium,
       _magnesiumRefForUser(user),
     );
@@ -379,11 +299,7 @@ class _DailyNutrientPanelState extends State<DailyNutrientPanel> {
       ),
     ];
 
-    // Filter by the user's per-nutrient visibility setting. Anything not
-    // mentioned in the map defaults to visible.
-    final visibleRows = allRows
-        .where((row) => visibility[row.key] ?? true)
-        .map(
+    final visibleRows = allRows.map(
           (row) => _NutrientRow(
             label: row.label,
             value: row.value,
@@ -665,10 +581,7 @@ class NutrientPanelTotals {
   }
 }
 
-/// Stable identifiers for the panel's nutrient rows. These are the keys the
-/// per-nutrient visibility map uses on [ConfigEntity], so renaming any of
-/// them is a backward-incompatible change: existing visibility overrides
-/// would silently lose their associations.
+/// Stable identifiers for the panel's nutrient rows and DRI lookup.
 class NutrientPanelKeys {
   NutrientPanelKeys._();
 
@@ -699,12 +612,10 @@ class NutrientPanelKeys {
 
 class _PanelData {
   final UserEntity? user;
-  final Map<String, bool> visibility;
   final List<IntakeEntity> weekIntakes;
 
   _PanelData({
     required this.user,
-    required this.visibility,
     required this.weekIntakes,
   });
 }

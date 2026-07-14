@@ -18,18 +18,6 @@ class ConfigRepository {
     await _configDataSource.setConfigDisclaimer(hasAcceptedDisclaimer);
   }
 
-  Future<void> setConfigHasAcceptedAnonymousData(
-    bool hasAcceptedAnonymousData,
-  ) async {
-    await _configDataSource.setConfigAcceptedAnonymousData(
-      hasAcceptedAnonymousData,
-    );
-  }
-
-  Future<bool> getConfigHasAcceptedAnonymousData() async {
-    return await _configDataSource.getHasAcceptedAnonymousData();
-  }
-
   Future<AppThemeEntity> getConfigAppTheme() async {
     final appThemeDBO = await _configDataSource.getAppTheme();
     return AppThemeEntity.fromAppThemeDBO(appThemeDBO);
@@ -61,10 +49,6 @@ class ConfigRepository {
 
   Future<void> setConfigKcalAdjustment(double kcalAdjustment) async {
     await _configDataSource.setConfigKcalAdjustment(kcalAdjustment);
-  }
-
-  Future<void> setConfigShowActivityTracking(bool show) async {
-    await _configDataSource.setConfigShowActivityTracking(show);
   }
 
   Future<void> setConfigShowMealMacros(bool show) async {
@@ -101,10 +85,6 @@ class ConfigRepository {
     await _configDataSource.setConfigUsesKilojoules(usesKilojoules);
   }
 
-  Future<void> setConfigMealKcalSharesPct(Map<String, int> shares) async {
-    await _configDataSource.setConfigMealKcalSharesPct(shares);
-  }
-
   Future<String?> getCustomMealFormMode() async {
     return await _configDataSource.getCustomMealFormMode();
   }
@@ -121,12 +101,6 @@ class ConfigRepository {
     await _configDataSource.setDiarySortPreference(mealKey, sortIndex);
   }
 
-  Future<void> setConfigNutrientPanelVisibility(
-    Map<String, bool> visibility,
-  ) async {
-    await _configDataSource.setConfigNutrientPanelVisibility(visibility);
-  }
-
   Future<void> setConfigDayStartOffsetHours(int hours) async {
     await _configDataSource.setConfigDayStartOffsetHours(hours);
   }
@@ -135,19 +109,4 @@ class ConfigRepository {
     await _configDataSource.setConfigDayStartOffsetMinutes(minutes);
   }
 
-  Future<void> setConfigDailyWaterGoalMl(int goalMl) async {
-    await _configDataSource.setConfigDailyWaterGoalMl(goalMl);
-  }
-
-  Future<void> setFastingWarningAcknowledged(bool acknowledged) async {
-    await _configDataSource.setFastingWarningAcknowledged(acknowledged);
-  }
-
-  Future<void> setConfigUseMaterialYou(bool useMaterialYou) async {
-    await _configDataSource.setConfigUseMaterialYou(useMaterialYou);
-  }
-
-  Future<void> setConfigAccentColor(int? value) async {
-    await _configDataSource.setConfigAccentColor(value);
-  }
 }

@@ -28,13 +28,9 @@ class OnboardingBloc extends Bloc<OnboardingEvent, OnboardingState> {
 
   Future<void> saveOnboardingData(
     UserEntity userEntity,
-    bool hasAcceptedDataCollection,
     bool usesImperialUnits,
   ) async {
     await _addUserUsecase.addUser(userEntity);
-    await _addConfigUsecase.setConfigHasAcceptedAnonymousData(
-      hasAcceptedDataCollection,
-    );
     await _addConfigUsecase.setConfigUsesImperialUnits(usesImperialUnits);
   }
 

@@ -7,7 +7,6 @@ import 'package:opennutritracker/features/add_meal/data/data_sources/off_data_so
 import 'package:opennutritracker/features/add_meal/data/data_sources/sp_fdc_data_source.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_entity.dart';
 import 'package:opennutritracker/features/add_meal/domain/entity/meal_nutriments_entity.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 
 class ProductsRepository {
   static final _log = Logger('ProductsRepository');
@@ -134,9 +133,8 @@ class ProductsRepository {
 
   /// Drops items whose nutriments fail the physical-plausibility rules from
   /// issue #222 (sugar > carbs, saturated fat > total fat, macros summing to
-  /// more than 100g per 100g basis). The failure is logged locally and a
-  /// Sentry breadcrumb is attached so we can spot whether a particular FDC
-  /// id is consistently bad upstream vs. a one-off parse glitch.
+  /// more than 100g per 100g basis). The failure is logged locally so bad
+  /// source data can be distinguished from a one-off parse glitch.
   ///
   /// Applied to both the FDC and OFF parse paths: the rules are physics, not
   /// source-specific, and we have seen both corpora carry the occasional
@@ -150,17 +148,6 @@ class ProductsRepository {
       'Dropping ${meal.source.name} item code=${meal.code} '
       'name="${meal.name}" — failed rule: $reason',
     );
-    Sentry.addBreadcrumb(Breadcrumb(
-      category: 'food_import.validation',
-      level: SentryLevel.warning,
-      message: 'Dropped corrupt food entry from search results',
-      data: {
-        'source': meal.source.name,
-        'code': meal.code,
-        'name': meal.name,
-        'rule': reason,
-      },
-    ));
     return false;
   }
 }

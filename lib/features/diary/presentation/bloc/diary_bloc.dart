@@ -26,7 +26,6 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
       final config = await _getConfigUsecase.getConfig();
       final usesImperialUnits = config.usesImperialUnits;
       final showMealMacros = config.showMealMacros;
-      final showActivityTracking = config.showActivityTracking;
 
       // #139: pin currentDay to the user's logical "today" so the
       // diary calendar's today-marker shifts with the configured boundary.
@@ -51,7 +50,6 @@ class DiaryBloc extends Bloc<DiaryEvent, DiaryState> {
         trackedDaysMap,
         usesImperialUnits,
         showMealMacros: showMealMacros,
-        showActivityTracking: showActivityTracking,
       ));
     });
   }

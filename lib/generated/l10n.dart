@@ -1510,41 +1510,11 @@ class S {
     );
   }
 
-  /// `Use system colours`
-  String get settingsMaterialYouTitle {
-    return Intl.message(
-      'Use system colours',
-      name: 'settingsMaterialYouTitle',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Match your wallpaper accent on Android 12 and newer.`
-  String get settingsMaterialYouSubtitle {
-    return Intl.message(
-      'Match your wallpaper accent on Android 12 and newer.',
-      name: 'settingsMaterialYouSubtitle',
-      desc: '',
-      args: [],
-    );
-  }
-
   /// `Accent colour`
   String get settingsAccentColourTitle {
     return Intl.message(
       'Accent colour',
       name: 'settingsAccentColourTitle',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Material You`
-  String get settingsAccentSubtitleMaterialYou {
-    return Intl.message(
-      'Material You',
-      name: 'settingsAccentSubtitleMaterialYou',
       desc: '',
       args: [],
     );
@@ -2698,15 +2668,6 @@ class S {
     return Intl.message(
       'Have a barcode? Help everyone by contributing the product to Open Food Facts:',
       name: 'csvImportContributeOffPrefix',
-      desc: '',
-      args: [],
-    );
-  }
-
-  String get csvImportContributeOffAndroidLink {
-    return Intl.message(
-      'Android',
-      name: 'csvImportContributeOffAndroidLink',
       desc: '',
       args: [],
     );
@@ -7939,13 +7900,6 @@ class AppLocalizationDelegate extends LocalizationsDelegate<S> {
   List<Locale> get supportedLocales {
     return const <Locale>[
       Locale.fromSubtags(languageCode: 'en'),
-      Locale.fromSubtags(languageCode: 'cs'),
-      Locale.fromSubtags(languageCode: 'de'),
-      Locale.fromSubtags(languageCode: 'it'),
-      Locale.fromSubtags(languageCode: 'pl'),
-      Locale.fromSubtags(languageCode: 'sk'),
-      Locale.fromSubtags(languageCode: 'tr'),
-      Locale.fromSubtags(languageCode: 'uk'),
       Locale.fromSubtags(languageCode: 'zh'),
     ];
   }

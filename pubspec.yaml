@@ -10,8 +10,6 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # followed by an optional build number separated by a +.
 # Both the version and the builder number may be overridden in flutter
 # build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
 # In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
@@ -67,22 +65,16 @@ dependencies:
   fl_chart: ^1.2.0
 
   mobile_scanner: ^7.2.0
-  qr_flutter: ^4.1.0
-  share_plus: ^10.0.0
   image_picker: ^1.1.2
   flutter_image_compress: ^2.4.0
 
   hive_ce: ^2.19.3
   hive_ce_flutter: ^2.3.4
 
-  sentry_flutter: ^9.19.0
-
   supabase_flutter: ^2.12.4
   flutter_local_notifications: ^19.5.0
   timezone: ^0.10.1
   flutter_timezone: ^3.0.0
-
-  dynamic_color: ^1.7.0
 
 dev_dependencies:
   flutter_test:
@@ -152,14 +144,9 @@ flutter_intl:
   enabled: true
 
 flutter_launcher_icons:
-  android: true
-  adaptive_icon_foreground: "assets/icon/ont_logo_square_color_back_1024x1024.png"
-  adaptive_icon_background: "#ffffff"
-  adaptive_icon_monochrome: "assets/icon/ont_logo_square_color_white_1024x1024.png"
   ios: true
   remove_alpha_ios: true
   image_path: "assets/icon/ont_logo_square_color_back_1024x1024.png"
   image_path_ios_dark_transparent: "assets/icon/ont_logo_square_color_white_1024x1024.png"
   image_path_ios_tinted_grayscale: "assets/icon/ont_logo_square_color_white_1024x1024.png"
   desaturate_tinted_to_grayscale_ios: true
-  min_sdk_android: 21

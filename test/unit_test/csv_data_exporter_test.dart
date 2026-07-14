@@ -1,10 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:opennutritracker/core/data/data_source/user_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/intake_type_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/meal_nutriments_dbo.dart';
-import 'package:opennutritracker/core/data/dbo/physical_activity_dbo.dart';
 import 'package:opennutritracker/core/data/dbo/tracked_day_dbo.dart';
 import 'package:opennutritracker/core/utils/csv_data_exporter.dart';
 
@@ -100,67 +98,6 @@ void main() {
       final csv = CsvDataExporter.intakesToCsv([]);
       final header = csv.split('\n').first;
       expect(header, CsvDataExporter.intakeColumns.join(','));
-    });
-  });
-
-  group('CsvDataExporter user-activity round-trip', () {
-    test('a full activity row survives a CSV round-trip including tags', () {
-      final activity = UserActivityDBO(
-        'act-1',
-        45,
-        320.5,
-        DateTime.utc(2026, 5, 13, 18),
-        PhysicalActivityDBO(
-          '01010',
-          'Running, 8 km/h',
-          'Running, 8 km/h (7.5 min/km)',
-          8.3,
-          const ['cardio', 'outdoor'],
-          PhysicalActivityTypeDBO.running,
-        ),
-      );
-
-      final csv = CsvDataExporter.userActivitiesToCsv([activity]);
-      final parsed =
-          CsvDataExporter.parseUserActivitiesFromCsv(csv).single;
-
-      expect(parsed.id, 'act-1');
-      expect(parsed.duration, 45);
-      expect(parsed.burnedKcal, 320.5);
-      expect(parsed.date, activity.date);
-      expect(parsed.physicalActivityDBO.code, '01010');
-      // The specific-activity contains a comma, so the export must quote
-      // it; if it didn't, this assertion would catch the over-split.
-      expect(parsed.physicalActivityDBO.specificActivity, 'Running, 8 km/h');
-      expect(parsed.physicalActivityDBO.mets, 8.3);
-      expect(parsed.physicalActivityDBO.tags, ['cardio', 'outdoor']);
-      expect(
-        parsed.physicalActivityDBO.type,
-        PhysicalActivityTypeDBO.running,
-      );
-    });
-
-    test('an activity with no tags round-trips to an empty list', () {
-      final activity = UserActivityDBO(
-        'act-2',
-        20,
-        100,
-        DateTime.utc(2026, 5, 13, 7),
-        PhysicalActivityDBO(
-          '02020',
-          'Walking',
-          'Walking, leisure',
-          3.5,
-          const [],
-          PhysicalActivityTypeDBO.sport,
-        ),
-      );
-
-      final csv = CsvDataExporter.userActivitiesToCsv([activity]);
-      final parsed =
-          CsvDataExporter.parseUserActivitiesFromCsv(csv).single;
-
-      expect(parsed.physicalActivityDBO.tags, isEmpty);
     });
   });
 

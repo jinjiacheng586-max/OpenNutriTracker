@@ -274,8 +274,6 @@ class MessageLookup extends MessageLookupByLibrary {
         "clearOffCacheLabel":
             MessageLookupByLibrary.simpleMessage("Clear cached items"),
         "clearOffCacheSubtitle": m14,
-        "csvImportContributeOffAndroidLink":
-            MessageLookupByLibrary.simpleMessage("Android"),
         "csvImportContributeOffIosLink":
             MessageLookupByLibrary.simpleMessage("iOS"),
         "csvImportContributeOffPrefix": MessageLookupByLibrary.simpleMessage(
@@ -1166,11 +1164,7 @@ class MessageLookup extends MessageLookupByLibrary {
         "settingsLabel": MessageLookupByLibrary.simpleMessage("Settings"),
         "settingsLanguageLabel":
             MessageLookupByLibrary.simpleMessage("Language"),
-        "settingsMaterialYouTitle":
-            MessageLookupByLibrary.simpleMessage("Use system colours"),
-        "settingsMaterialYouSubtitle": MessageLookupByLibrary.simpleMessage("Match your wallpaper accent on Android 12 and newer."),
         "settingsAccentColourTitle": MessageLookupByLibrary.simpleMessage("Accent colour"),
-        "settingsAccentSubtitleMaterialYou": MessageLookupByLibrary.simpleMessage("Material You"),
         "settingsAccentSubtitleCustom": MessageLookupByLibrary.simpleMessage("Custom"),
         "settingsAccentSubtitleDefault": MessageLookupByLibrary.simpleMessage("Default"),
         "settingsAccentPresetsHeader": MessageLookupByLibrary.simpleMessage("Pick a colour"),

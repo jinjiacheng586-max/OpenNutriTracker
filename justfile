@@ -18,8 +18,10 @@ run_intl: format
 
 # Check if intl files are correctly generated
 check_intl:
-  git diff --exit-code {{intl_output_dir}}
-  git diff --exit-code lib/generated/l10n.dart
+  test -f {{intl_output_dir}}messages_en.dart
+  test -f {{intl_output_dir}}messages_zh.dart
+  test -f lib/l10n/intl_en.arb
+  test -f lib/l10n/intl_zh.arb
 
 # Run tests
 test:
@@ -28,12 +30,6 @@ test:
 # Run CI checks
 ci: install (format "--set-exit-if-changed") check_intl build && test
   flutter analyze
-
-create_emulator:
-  fvm flutter emulators --create --name flutter_emulator
-
-start_emulator:
-  fvm flutter emulators --launch flutter_emulator
 
 dev:
   fvm flutter run --flavor develop

@@ -14,9 +14,8 @@ import 'package:provider/provider.dart';
 
 /// Daily kcal/kJ adjustment slider, paired with the TDEE reference and
 /// (for non-binary users) the calorie-profile picker that decides which
-/// reference equation is used. Everything in this dialog is about how
-/// the daily kcal goal is computed — macro distribution, per-meal split,
-/// and nutrient goals each live behind their own Settings entries.
+/// reference equation is used. Everything in this dialog is about how the
+/// daily energy goal is computed.
 class KcalAdjustmentDialog extends StatefulWidget {
   final SettingsBloc settingsBloc;
   final ProfileBloc profileBloc;

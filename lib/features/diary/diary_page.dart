@@ -4,12 +4,7 @@ import 'package:logging/logging.dart';
 import 'package:opennutritracker/core/domain/entity/intake_entity.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
-import 'package:opennutritracker/core/presentation/widgets/edit_activity_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/edit_dialog.dart';
-import 'package:opennutritracker/core/utils/calc/met_calc.dart';
-import 'package:opennutritracker/core/domain/usecase/get_user_usecase.dart';
-import 'package:opennutritracker/features/activity_detail/presentation/bloc/activity_detail_bloc.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/diary/presentation/bloc/calendar_day_bloc.dart';
@@ -32,7 +27,6 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
   late DiaryBloc _diaryBloc;
   late CalendarDayBloc _calendarDayBloc;
   late MealDetailBloc _mealDetailBloc;
-  late ActivityDetailBloc _activityDetailBloc;
 
   // #292: Extended from 356 days (~1 year) to 5 years so old entries are never truncated
   static const _calendarDurationDays = Duration(days: 365 * 5);
@@ -46,7 +40,6 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     _diaryBloc = locator<DiaryBloc>();
     _calendarDayBloc = locator<CalendarDayBloc>();
     _mealDetailBloc = locator<MealDetailBloc>();
-    _activityDetailBloc = locator<ActivityDetailBloc>();
     super.initState();
   }
 
@@ -71,7 +64,6 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
             state.trackedDayMap,
             state.usesImperialUnits,
             state.showMealMacros,
-            state.showActivityTracking,
           );
         }
         return const SizedBox();
@@ -96,7 +88,6 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     Map<String, TrackedDayEntity> trackedDaysMap,
     bool usesImperialUnits,
     bool showMealMacros,
-    bool showActivityTracking,
   ) {
     return ListView(
       children: [
@@ -120,28 +111,19 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
               return DayInfoWidget(
                 trackedDayEntity: state.trackedDayEntity,
                 selectedDay: _selectedDate,
-                userActivities: state.userActivityList,
                 breakfastIntake: state.breakfastIntakeList,
                 lunchIntake: state.lunchIntakeList,
                 dinnerIntake: state.dinnerIntakeList,
                 snackIntake: state.snackIntakeList,
                 onDeleteIntake: _onDeleteIntakeItem,
-                onDeleteActivity: _onDeleteActivityItem,
                 onCopyIntake: _onCopyIntakeItem,
-                onCopyActivity: _onCopyActivityItem,
                 onEditIntake: _onEditIntakeItem,
-                onEditActivity: _onEditActivityItem,
                 usesImperialUnits: usesImperialUnits,
                 showMealMacros: showMealMacros,
-                showActivityTracking: showActivityTracking,
                 breakfastKcalTarget: state.breakfastKcalTarget,
                 lunchKcalTarget: state.lunchKcalTarget,
                 dinnerKcalTarget: state.dinnerKcalTarget,
                 snackKcalTarget: state.snackKcalTarget,
-                breakfastSharePct: state.breakfastSharePct,
-                lunchSharePct: state.lunchSharePct,
-                dinnerSharePct: state.dinnerSharePct,
-                snackSharePct: state.snackSharePct,
                 diarySortPreferences: state.diarySortPreferences,
               );
             }
@@ -159,25 +141,6 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     await _calendarDayBloc.deleteIntakeItem(
       context,
       intakeEntity,
-      trackedDayEntity?.day ?? DateTime.now(),
-    );
-    _diaryBloc.add(const LoadDiaryYearEvent());
-    _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
-    _diaryBloc.updateHomePage();
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context).itemDeletedSnackbar)),
-      );
-    }
-  }
-
-  void _onDeleteActivityItem(
-    UserActivityEntity userActivityEntity,
-    TrackedDayEntity? trackedDayEntity,
-  ) async {
-    await _calendarDayBloc.deleteUserActivityItem(
-      context,
-      userActivityEntity,
       trackedDayEntity?.day ?? DateTime.now(),
     );
     _diaryBloc.add(const LoadDiaryYearEvent());
@@ -212,40 +175,6 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
     _diaryBloc.updateHomePage();
   }
 
-  void _onCopyActivityItem(
-    UserActivityEntity userActivityEntity,
-    TrackedDayEntity? trackedDayEntity,
-  ) async {
-    final activity = userActivityEntity.physicalActivityEntity;
-    if (activity.isCustom) {
-      // Custom activities (#70) store the user-entered kcal directly — the
-      // MET formula would just return zero for them, so we pass the saved
-      // kcal figure through unchanged so a copied entry keeps its calories.
-      final kcal =
-          userActivityEntity.userKcal ?? userActivityEntity.burnedKcal;
-      _activityDetailBloc.persistActivity(
-        kcal.toString(),
-        kcal,
-        activity,
-        DateTime.now(),
-      );
-    } else {
-      final user = await locator<GetUserUsecase>().getUserData();
-      final burnedKcal = METCalc.getTotalBurnedKcal(
-        user,
-        activity,
-        userActivityEntity.duration,
-      );
-      _activityDetailBloc.persistActivity(
-        userActivityEntity.duration.toString(),
-        burnedKcal,
-        activity,
-        DateTime.now(),
-      );
-    }
-    _diaryBloc.updateHomePage();
-  }
-
   void _onEditIntakeItem(
     BuildContext context,
     IntakeEntity intakeEntity,
@@ -262,32 +191,6 @@ class _DiaryPageState extends State<DiaryPage> with WidgetsBindingObserver {
       await _calendarDayBloc.updateIntakeItem(
         intakeEntity.id,
         {'amount': changeIntakeAmount},
-        _selectedDate,
-      );
-      _diaryBloc.add(const LoadDiaryYearEvent());
-      _calendarDayBloc.add(LoadCalendarDayEvent(_selectedDate));
-      _diaryBloc.updateHomePage();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).itemUpdatedSnackbar)),
-        );
-      }
-    }
-  }
-
-  void _onEditActivityItem(
-    BuildContext context,
-    UserActivityEntity activityEntity,
-  ) async {
-    final newDuration = await showDialog<double>(
-      context: context,
-      builder: (context) =>
-          EditActivityDialog(activityEntity: activityEntity),
-    );
-    if (newDuration != null) {
-      await _calendarDayBloc.updateUserActivityItem(
-        activityEntity,
-        newDuration,
         _selectedDate,
       );
       _diaryBloc.add(const LoadDiaryYearEvent());

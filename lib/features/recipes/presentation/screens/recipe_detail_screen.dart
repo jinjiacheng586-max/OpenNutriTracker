@@ -3,11 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/recipe_entity.dart';
 import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
-import 'package:opennutritracker/core/presentation/widgets/share_qr_dialog.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
-import 'package:opennutritracker/features/recipes/domain/entity/shared_recipe_payload.dart';
 import 'package:opennutritracker/features/recipes/presentation/bloc/recipe_detail_bloc.dart';
 import 'package:opennutritracker/features/recipes/presentation/screens/recipe_builder_screen.dart';
 import 'package:opennutritracker/features/recipes/presentation/widgets/ingredient_list_item.dart';
@@ -74,21 +72,6 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       appBar: AppBar(
         title: Text(recipe.name),
         actions: [
-          IconButton(
-            tooltip: S.of(context).shareRecipeLabel,
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () {
-              final code = SharedRecipePayload.fromRecipe(recipe).toJsonString();
-              showDialog(
-                context: context,
-                builder: (_) => ShareQrDialog(
-                  title: S.of(context).shareRecipeLabel,
-                  code: code,
-                  fileBaseName: 'recipe_qr',
-                ),
-              );
-            },
-          ),
           IconButton(
             tooltip: S.of(context).editRecipeTitle,
             icon: const Icon(Icons.edit_outlined),

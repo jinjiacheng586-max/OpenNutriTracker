@@ -19,9 +19,6 @@ import 'package:opennutritracker/features/profile/presentation/widgets/set_weekl
 import 'package:opennutritracker/features/profile/presentation/widgets/set_pal_category_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_target_weight_dialog.dart';
 import 'package:opennutritracker/features/profile/presentation/widgets/set_weight_dialog.dart';
-import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
-import 'package:opennutritracker/features/settings/presentation/bloc/settings_bloc.dart';
-import 'package:opennutritracker/features/settings/presentation/widgets/water_goal_dialog.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -56,7 +53,6 @@ class _ProfilePageState extends State<ProfilePage> {
             state.userBMI,
             state.userEntity,
             state.usesImperialUnits,
-            state.effectiveWaterGoalMl,
           );
         } else {
           return _getLoadingContent();
@@ -74,7 +70,6 @@ class _ProfilePageState extends State<ProfilePage> {
     UserBMIEntity userBMIEntity,
     UserEntity user,
     bool usesImperialUnits,
-    int effectiveWaterGoalMl,
   ) {
     return ListView(
       children: [
@@ -199,24 +194,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 _showSetTargetWeightDialog(context, user, usesImperialUnits),
           ),
         ),
-        Semantics(
-          identifier: 'profile-water-goal',
-          child: ListTile(
-            title: Text(
-              S.of(context).settingsWaterGoalLabel,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            subtitle: Text(
-              '$effectiveWaterGoalMl ${S.of(context).mlLabel}',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            leading: const SizedBox(
-              height: double.infinity,
-              child: Icon(Icons.water_drop_outlined),
-            ),
-            onTap: () => _showWaterGoalDialog(context),
-          ),
-        ),
         // The opt-in linear taper scales the daily kcal deficit down
         // as current weight approaches the target. Surfaced here only
         // once a target weight is set, since without one the toggle
@@ -241,22 +218,6 @@ class _ProfilePageState extends State<ProfilePage> {
               onChanged: (v) => _profileBloc.setCaloriesTaperEnabled(v),
             ),
           ),
-        Semantics(
-          identifier: 'profile-fasting-entry',
-          child: ListTile(
-            title: Text(
-              S.of(context).profileFastingEntry,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            leading: const SizedBox(
-              height: double.infinity,
-              child: Icon(Icons.timer_outlined),
-            ),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () =>
-                Navigator.of(context).pushNamed(NavigationOptions.fastingRoute),
-          ),
-        ),
         Semantics(
           identifier: 'profile-weight-history',
           child: ListTile(
@@ -574,16 +535,6 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     await _profileBloc.updateUser(userEntity);
-  }
-
-  void _showWaterGoalDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => WaterGoalDialog(
-        settingsBloc: locator<SettingsBloc>(),
-        homeBloc: locator<HomeBloc>(),
-      ),
-    );
   }
 
   Future<void> _showCaloriesProfileDialog(

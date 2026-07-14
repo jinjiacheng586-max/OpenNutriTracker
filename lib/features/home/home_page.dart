@@ -8,9 +8,6 @@ import 'package:opennutritracker/core/presentation/widgets/low_kcal_warning_card
 import 'package:opennutritracker/core/utils/calc/calorie_goal_calc.dart';
 import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/domain/entity/tracked_day_entity.dart';
-import 'package:opennutritracker/core/domain/entity/user_activity_entity.dart';
-import 'package:opennutritracker/core/presentation/widgets/activity_vertial_list.dart';
-import 'package:opennutritracker/core/presentation/widgets/edit_activity_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/edit_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/delete_dialog.dart';
 import 'package:opennutritracker/core/presentation/widgets/disclaimer_dialog.dart';
@@ -19,8 +16,6 @@ import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.da
 import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
-import 'package:opennutritracker/features/home/presentation/widgets/fasting_home_chip.dart';
-import 'package:opennutritracker/features/home/presentation/widgets/quick_water_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/quick_weight_widget.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
@@ -36,8 +31,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   late HomeBloc _homeBloc;
   bool _isIntakeDragging = false;
-  bool _isActivityDragging = false;
-  bool get _isDragging => _isIntakeDragging || _isActivityDragging;
+  bool get _isDragging => _isIntakeDragging;
 
   @override
   void initState() {
@@ -82,21 +76,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             state.lunchIntakeList,
             state.dinnerIntakeList,
             state.snackIntakeList,
-            state.userActivityList,
             state.usesImperialUnits,
-            state.showActivityTracking,
             state.showMealMacros,
             state.userWeightKg,
-            state.breakfastKcalTarget,
-            state.lunchKcalTarget,
-            state.dinnerKcalTarget,
-            state.snackKcalTarget,
-            state.breakfastSharePct,
-            state.lunchSharePct,
-            state.dinnerSharePct,
-            state.snackSharePct,
-            state.waterMlToday,
-            state.waterGoalMl,
           );
         } else {
           return _getLoadingContent();
@@ -137,21 +119,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     List<IntakeEntity> lunchIntakeList,
     List<IntakeEntity> dinnerIntakeList,
     List<IntakeEntity> snackIntakeList,
-    List<UserActivityEntity> userActivities,
     bool usesImperialUnits,
-    bool showActivityTracking,
     bool showMealMacros,
     double userWeightKg,
-    double breakfastKcalTarget,
-    double lunchKcalTarget,
-    double dinnerKcalTarget,
-    double snackKcalTarget,
-    int breakfastSharePct,
-    int lunchSharePct,
-    int dinnerSharePct,
-    int snackSharePct,
-    int waterMlToday,
-    int waterGoalMl,
   ) {
     if (showDisclaimerDialog) {
       _showDisclaimerDialog(context);
@@ -162,21 +132,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
-                children: [
-                  QuickWeightWidget(
-                    weightKg: userWeightKg,
-                    usesImperialUnits: usesImperialUnits,
-                  ),
-                  const Spacer(),
-                  QuickWaterWidget(
-                    waterMlToday: waterMlToday,
-                    waterGoalMl: waterGoalMl,
-                  ),
-                ],
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: QuickWeightWidget(
+                  weightKg: userWeightKg,
+                  usesImperialUnits: usesImperialUnits,
+                ),
               ),
             ),
-            const FastingHomeChip(),
             const SizedBox(height: 8.0),
             DashboardWidget(
               totalKcalDaily: totalKcalDaily,
@@ -201,21 +164,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   caloriesProfile: userCaloriesProfile,
                 ),
               ),
-            if (showActivityTracking)
-              ActivityVerticalList(
-                day: DateTime.now(),
-                title: S.of(context).activityLabel,
-                userActivityList: userActivities,
-                onItemLongPressedCallback: onActivityItemLongPressed,
-                onItemTappedCallback: onActivityItemTapped,
-                onItemDragCallback: onActivityItemDrag,
-              ),
-            // #150 follow-up: a 0% share (e.g. OMAD sets snack to 0) hides the
-            // section entirely so the home view doesn't carry an empty header
-            // the user explicitly opted out of. Already-logged intakes for a
-            // hidden section still count toward daily totals.
-            if (breakfastSharePct > 0)
-              IntakeVerticalList(
+            IntakeVerticalList(
                 day: DateTime.now(),
                 title: S.of(context).breakfastLabel,
                 listIcon: IntakeTypeEntity.breakfast.getIconData(),
@@ -226,10 +175,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 onItemTappedCallback: onIntakeItemTapped,
                 usesImperialUnits: usesImperialUnits,
                 showMealMacros: showMealMacros,
-                mealKcalTarget: breakfastKcalTarget,
               ),
-            if (lunchSharePct > 0)
-              IntakeVerticalList(
+            IntakeVerticalList(
                 day: DateTime.now(),
                 title: S.of(context).lunchLabel,
                 listIcon: IntakeTypeEntity.lunch.getIconData(),
@@ -240,10 +187,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 onItemTappedCallback: onIntakeItemTapped,
                 usesImperialUnits: usesImperialUnits,
                 showMealMacros: showMealMacros,
-                mealKcalTarget: lunchKcalTarget,
               ),
-            if (dinnerSharePct > 0)
-              IntakeVerticalList(
+            IntakeVerticalList(
                 day: DateTime.now(),
                 title: S.of(context).dinnerLabel,
                 addMealType: AddMealType.dinnerType,
@@ -254,10 +199,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 onItemTappedCallback: onIntakeItemTapped,
                 usesImperialUnits: usesImperialUnits,
                 showMealMacros: showMealMacros,
-                mealKcalTarget: dinnerKcalTarget,
               ),
-            if (snackSharePct > 0)
-              IntakeVerticalList(
+            IntakeVerticalList(
                 day: DateTime.now(),
                 title: S.of(context).snackLabel,
                 listIcon: IntakeTypeEntity.snack.getIconData(),
@@ -268,7 +211,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 onItemTappedCallback: onIntakeItemTapped,
                 usesImperialUnits: usesImperialUnits,
                 showMealMacros: showMealMacros,
-                mealKcalTarget: snackKcalTarget,
               ),
             const SizedBox(height: 48.0),
           ],
@@ -303,19 +245,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       );
                     },
                   ),
-                  DragTarget<UserActivityEntity>(
-                    onAcceptWithDetails: (data) {
-                      _confirmDeleteActivity(context, data.data);
-                    },
-                    onLeave: (data) {
-                      setState(() {
-                        _isActivityDragging = false;
-                      });
-                    },
-                    builder: (context, candidateData, rejectedData) {
-                      return const SizedBox.expand();
-                    },
-                  ),
                 ],
               ),
             ),
@@ -323,26 +252,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         ),
       ],
     );
-  }
-
-  void onActivityItemLongPressed(
-    BuildContext context,
-    UserActivityEntity activityEntity,
-  ) async {
-    final deleteIntake = await showDialog<bool>(
-      context: context,
-      builder: (context) => const DeleteDialog(),
-    );
-
-    if (deleteIntake != null) {
-      _homeBloc.deleteUserActivityItem(activityEntity);
-      _homeBloc.add(const LoadItemsEvent());
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).itemDeletedSnackbar)),
-        );
-      }
-    }
   }
 
   void onIntakeItemLongPressed(
@@ -371,33 +280,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         _isIntakeDragging = isDragging;
       });
     });
-  }
-
-  void onActivityItemDrag(bool isDragging) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        _isActivityDragging = isDragging;
-      });
-    });
-  }
-
-  void onActivityItemTapped(
-    BuildContext context,
-    UserActivityEntity activityEntity,
-  ) async {
-    final newDuration = await showDialog<double>(
-      context: context,
-      builder: (context) => EditActivityDialog(activityEntity: activityEntity),
-    );
-    if (newDuration != null) {
-      await _homeBloc.updateUserActivityItem(activityEntity, newDuration);
-      _homeBloc.add(const LoadItemsEvent());
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context).itemUpdatedSnackbar)),
-        );
-      }
-    }
   }
 
   void onIntakeItemTapped(
@@ -441,23 +323,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
     setState(() {
       _isIntakeDragging = false;
-    });
-  }
-
-  void _confirmDeleteActivity(
-    BuildContext context,
-    UserActivityEntity activity,
-  ) async {
-    final delete = await showDialog<bool>(
-      context: context,
-      builder: (context) => const DeleteDialog(),
-    );
-    if (delete == true) {
-      _homeBloc.deleteUserActivityItem(activity);
-      _homeBloc.add(const LoadItemsEvent());
-    }
-    setState(() {
-      _isActivityDragging = false;
     });
   }
 

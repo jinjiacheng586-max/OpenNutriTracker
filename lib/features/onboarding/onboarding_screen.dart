@@ -108,7 +108,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           bodyWidget: OnboardingIntroPageBody(
             setPageContent: _setIntroPageData,
             initialAcceptedPolicy: _introPageButtonActive,
-            initialAcceptedDataCollection: selection.acceptDataCollection,
           ),
           footer: HighlightButton(
             buttonLabel: S.of(context).buttonStartLabel,
@@ -220,11 +219,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _introKey.currentState?.animateScroll(page);
   }
 
-  void _setIntroPageData(bool active, bool acceptedDataCollection) {
+  void _setIntroPageData(bool active) {
     setState(() {
-      _onboardingBloc.userSelection.acceptDataCollection =
-          acceptedDataCollection;
-
       _introPageButtonActive = active;
     });
   }
@@ -301,13 +297,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _onOverviewStartButtonPressed(BuildContext context) async {
     final userEntity = _onboardingBloc.userSelection.toUserEntity();
-    final hasAcceptedDataCollection =
-        _onboardingBloc.userSelection.acceptDataCollection;
     final usesImperialUnits = _onboardingBloc.userSelection.usesImperialUnits;
     if (userEntity != null) {
       await _onboardingBloc.saveOnboardingData(
         userEntity,
-        hasAcceptedDataCollection,
         usesImperialUnits,
       );
       if (!context.mounted) return;

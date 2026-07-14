@@ -26,37 +26,15 @@ class HomeLoadedState extends HomeState {
   final double totalCarbsGoal;
   final double totalFatsGoal;
   final double totalProteinsGoal;
-  final List<UserActivityEntity> userActivityList;
   final List<IntakeEntity> breakfastIntakeList;
   final List<IntakeEntity> lunchIntakeList;
   final List<IntakeEntity> dinnerIntakeList;
   final List<IntakeEntity> snackIntakeList;
   final bool usesImperialUnits;
-  final bool showActivityTracking; // #277
   final bool showMealMacros;
   final double userWeightKg;
-  // #150: recommended kcal target for each meal section, derived from the
-  // daily goal and the share configured under Settings → Calculations.
-  final double breakfastKcalTarget;
-  final double lunchKcalTarget;
-  final double dinnerKcalTarget;
-  final double snackKcalTarget;
-  // #150 follow-up: per-meal share percentages. A 0% share signals that the
-  // user has explicitly opted out of seeing that meal section (e.g. OMAD has
-  // 0% snack), so the section is hidden entirely rather than showing an empty
-  // header with a 0-kcal target.
-  final int breakfastSharePct;
-  final int lunchSharePct;
-  final int dinnerSharePct;
-  final int snackSharePct;
   final UserGenderEntity userGender;
   final CaloriesProfileEntity? userCaloriesProfile;
-  // #32: hydration totals for the home chip. waterMlToday is summed across
-  // every entry that falls within the configured logical day; waterGoalMl
-  // is the user-configurable target (Settings → Calculations).
-  final int waterMlToday;
-  final int waterGoalMl;
-  final List<WaterIntakeEntity> waterIntakes;
 
   const HomeLoadedState({
     required this.showDisclaimerDialog,
@@ -70,27 +48,14 @@ class HomeLoadedState extends HomeState {
     required this.totalCarbsGoal,
     required this.totalFatsGoal,
     required this.totalProteinsGoal,
-    required this.userActivityList,
     required this.breakfastIntakeList,
     required this.lunchIntakeList,
     required this.dinnerIntakeList,
     required this.snackIntakeList,
     required this.usesImperialUnits,
     required this.userWeightKg,
-    required this.breakfastKcalTarget,
-    required this.lunchKcalTarget,
-    required this.dinnerKcalTarget,
-    required this.snackKcalTarget,
-    required this.breakfastSharePct,
-    required this.lunchSharePct,
-    required this.dinnerSharePct,
-    required this.snackSharePct,
     required this.userGender,
     required this.userCaloriesProfile,
-    required this.waterMlToday,
-    required this.waterGoalMl,
-    required this.waterIntakes,
-    this.showActivityTracking = true,
     this.showMealMacros = true,
   });
 
@@ -103,9 +68,5 @@ class HomeLoadedState extends HomeState {
     usesImperialUnits,
     userWeightKg,
     totalKcalDaily,
-    waterMlToday,
-    waterGoalMl,
-    waterIntakes,
-    showActivityTracking,
   ];
 }
