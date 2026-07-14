@@ -1,153 +1,235 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="zh-CN">
 <head>
-  <!--
-    This file is the project landing page for OpenNutriTracker, served via
-    GitHub Pages and deployed from this directory by the
-    `.github/workflows/deploy-site.yml` workflow on each push to main.
-
-    To enable Pages for the first time:
-      Settings -> Pages -> Source: "GitHub Actions"
-    Once configured the page is reachable at
-    https://jinjiacheng586-max.github.io/OpenNutriTracker/
-  -->
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OpenNutriTracker — a quiet, private nutrition tracker</title>
-  <meta name="description" content="OpenNutriTracker is an open-source nutrition tracking app for iOS. No account, no ads, no subscription. All your data stays encrypted on your device." />
-  <meta property="og:title" content="OpenNutriTracker" />
-  <meta property="og:description" content="A quiet, private nutrition tracker for iOS. Open source. No account required. Your data stays on your device." />
-  <meta property="og:image" content="screenshots/logo.png" />
-  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#f5f7f2" />
+  <title>OpenNutriTracker · 应用预览</title>
+  <meta name="description" content="OpenNutriTracker 可交互 Web 预览：记录餐食、查看营养、管理食谱与体重目标。" />
   <link rel="icon" type="image/png" href="screenshots/logo.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="hero">
-    <div class="hero-inner">
-      <img class="logo" src="screenshots/logo.png" alt="OpenNutriTracker logo" width="96" height="96" />
-      <h1>OpenNutriTracker</h1>
-      <p class="tagline">
-        A quiet, private nutrition tracker for the people in your life who would rather log a meal
-        than sign up for another service. Simon Oppowa built and maintains it as open source,
-        and it has slowly grown into something a small community now looks after together.
-      </p>
-      <p class="elevator">
-        You log what you eat, the app keeps the numbers, and that is essentially the deal.
-        There is no account to make, no newsletter to dodge, and no ads waiting to load.
-        Everything you record is AES-encrypted and stored locally on your phone, so the
-        history of what you have eaten this month belongs to you and only you. Food data
-        comes from <a href="https://world.openfoodfacts.org/">Open Food Facts</a> and the
-        USDA <a href="https://fdc.nal.usda.gov/">Food Data Central</a> catalog, both of
-        which are themselves open and community-maintained.
-      </p>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主导航">
+      <a class="brand" href="#home" aria-label="OpenNutriTracker 首页">
+        <img src="screenshots/logo.png" alt="" width="38" height="38" />
+        <span><strong>OpenNutri</strong><small>日常营养记录</small></span>
+      </a>
 
-      <div class="cta-row">
-        <a class="store-badge" href="https://apps.apple.com/us/app/opennutritracker/id6451490901" aria-label="Download on the App Store">
-          <img src="screenshots/appstore_banner.png" alt="Download on the App Store" />
-        </a>
-        <a class="github-link" href="https://github.com/jinjiacheng586-max/OpenNutriTracker">View on GitHub</a>
+      <nav class="side-nav">
+        <button class="nav-item active" data-view="home"><span>⌂</span>今日</button>
+        <button class="nav-item" data-view="diary"><span>▤</span>日记</button>
+        <button class="nav-item" data-view="recipes"><span>▦</span>食谱</button>
+        <button class="nav-item" data-view="profile"><span>◉</span>我的</button>
+      </nav>
+
+      <div class="sidebar-tip">
+        <span class="tip-icon">✦</span>
+        <strong>今天完成得不错</strong>
+        <p>蛋白质还差 39 克，晚餐可以加一份鸡胸肉或豆腐。</p>
       </div>
-    </div>
-  </header>
 
-  <main>
-    <section class="screenshots" aria-label="Screenshots of the app">
-      <div class="screenshot-grid">
-        <figure>
-          <img src="screenshots/1_en-US.png" alt="Daily summary screen showing calories and macronutrients" loading="lazy" />
-        </figure>
-        <figure>
-          <img src="screenshots/2_en-US.png" alt="Adding a meal from the food search" loading="lazy" />
-        </figure>
-        <figure>
-          <img src="screenshots/3_en-US.png" alt="Food diary view across recent days" loading="lazy" />
-        </figure>
-        <figure>
-          <img src="screenshots/4_en-US.png" alt="Profile screen with goals and statistics" loading="lazy" />
-        </figure>
+      <button class="profile-chip" data-view="profile">
+        <span class="avatar">J</span>
+        <span><strong>Jin</strong><small>保持体重</small></span>
+        <span class="chevron">›</span>
+      </button>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="date-eyebrow">2026年7月14日 · 星期二</p>
+          <h1 id="page-title">今天吃得怎么样？</h1>
+        </div>
+        <div class="top-actions">
+          <button class="icon-button" id="theme-toggle" aria-label="切换深色模式">☾</button>
+          <button class="add-button" data-open-add><span>＋</span>记录食物</button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-home" aria-labelledby="page-title">
+        <div class="date-strip" aria-label="选择日期">
+          <button class="date-arrow" id="prev-week" aria-label="上一周">‹</button>
+          <div class="days" id="days"></div>
+          <button class="date-arrow" id="next-week" aria-label="下一周">›</button>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="card calorie-card">
+            <div class="card-heading">
+              <div><span class="label">每日能量</span><h2>热量概览</h2></div>
+              <button class="more-button" aria-label="更多">•••</button>
+            </div>
+            <div class="calorie-body">
+              <div class="calorie-ring" id="calorie-ring">
+                <div><strong id="remaining-kcal">728</strong><span>千卡剩余</span></div>
+              </div>
+              <div class="calorie-stats">
+                <div><span class="dot green"></span><p>已摄入<strong id="consumed-kcal">1,272</strong></p></div>
+                <div><span class="dot pale"></span><p>每日目标<strong>2,000</strong></p></div>
+                <div><span class="dot orange"></span><p>活动消耗<strong>0</strong></p></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card macro-card">
+            <div class="card-heading">
+              <div><span class="label">今日进度</span><h2>三大营养素</h2></div>
+              <span class="status-badge">均衡</span>
+            </div>
+            <div class="macro-list">
+              <div class="macro-row">
+                <div class="macro-label"><span class="macro-icon carbs">C</span><span>碳水化合物<small><b id="carbs-value">142</b> / 250 克</small></span><strong id="carbs-percent">57%</strong></div>
+                <div class="progress"><i id="carbs-bar" style="width:57%"></i></div>
+              </div>
+              <div class="macro-row">
+                <div class="macro-label"><span class="macro-icon protein">P</span><span>蛋白质<small><b id="protein-value">81</b> / 120 克</small></span><strong id="protein-percent">68%</strong></div>
+                <div class="progress"><i id="protein-bar" style="width:68%"></i></div>
+              </div>
+              <div class="macro-row">
+                <div class="macro-label"><span class="macro-icon fat">F</span><span>脂肪<small><b id="fat-value">42</b> / 67 克</small></span><strong id="fat-percent">63%</strong></div>
+                <div class="progress"><i id="fat-bar" style="width:63%"></i></div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="section-heading">
+          <div><span class="label">饮食记录</span><h2>今天的餐食</h2></div>
+          <button class="text-button" data-view="diary">查看完整日记 <span>→</span></button>
+        </div>
+
+        <div class="meal-grid" id="meal-grid">
+          <article class="meal-card" data-meal="breakfast">
+            <header><div><span class="meal-emoji breakfast">☀</span><span><strong>早餐</strong><small>08:20</small></span></div><b><span data-meal-kcal>436</span> 千卡</b></header>
+            <div class="food-list">
+              <div class="food-item"><span class="food-emoji">🥣</span><span><strong>燕麦酸奶碗</strong><small>燕麦、希腊酸奶、蓝莓 · 320 克</small></span><b>356</b></div>
+              <div class="food-item"><span class="food-emoji">☕</span><span><strong>拿铁咖啡</strong><small>全脂牛奶 · 250 毫升</small></span><b>80</b></div>
+            </div>
+            <button class="meal-add" data-open-add data-meal-target="breakfast">＋ 添加到早餐</button>
+          </article>
+
+          <article class="meal-card" data-meal="lunch">
+            <header><div><span class="meal-emoji lunch">☁</span><span><strong>午餐</strong><small>12:45</small></span></div><b><span data-meal-kcal>618</span> 千卡</b></header>
+            <div class="food-list">
+              <div class="food-item"><span class="food-emoji">🥗</span><span><strong>鸡肉藜麦沙拉</strong><small>鸡胸肉、藜麦、蔬菜 · 420 克</small></span><b>508</b></div>
+              <div class="food-item"><span class="food-emoji">🍊</span><span><strong>脐橙</strong><small>1 个 · 220 克</small></span><b>110</b></div>
+            </div>
+            <button class="meal-add" data-open-add data-meal-target="lunch">＋ 添加到午餐</button>
+          </article>
+
+          <article class="meal-card muted" data-meal="dinner">
+            <header><div><span class="meal-emoji dinner">☾</span><span><strong>晚餐</strong><small>尚未记录</small></span></div><b><span data-meal-kcal>0</span> 千卡</b></header>
+            <div class="empty-meal"><span>🍽</span><p>晚餐准备吃什么？<small>记录后即可看到全天营养</small></p></div>
+            <button class="meal-add primary" data-open-add data-meal-target="dinner">＋ 添加晚餐</button>
+          </article>
+
+          <article class="meal-card" data-meal="snack">
+            <header><div><span class="meal-emoji snack">✦</span><span><strong>零食</strong><small>15:30</small></span></div><b><span data-meal-kcal>218</span> 千卡</b></header>
+            <div class="food-list">
+              <div class="food-item"><span class="food-emoji">🥜</span><span><strong>混合坚果</strong><small>杏仁、腰果、核桃 · 35 克</small></span><b>218</b></div>
+            </div>
+            <button class="meal-add" data-open-add data-meal-target="snack">＋ 添加到零食</button>
+          </article>
+        </div>
+      </section>
+
+      <section class="view" id="view-diary">
+        <div class="diary-summary card">
+          <div><span class="label">本周平均</span><h2>1,846 <small>千卡 / 天</small></h2><p>比每日目标低 154 千卡</p></div>
+          <div class="week-bars" aria-label="本周热量图">
+            <div><i style="height:74%"></i><span>一</span></div><div><i style="height:88%"></i><span>二</span></div><div><i style="height:64%"></i><span>三</span></div><div><i style="height:95%"></i><span>四</span></div><div><i style="height:82%"></i><span>五</span></div><div><i style="height:70%"></i><span>六</span></div><div class="today"><i style="height:63%"></i><span>日</span></div>
+          </div>
+        </div>
+        <div class="section-heading"><div><span class="label">每日参考摄入量</span><h2>微量营养素</h2></div><div class="segmented"><button class="active">今天</button><button>本周</button></div></div>
+        <div class="nutrient-grid">
+          <article class="nutrient-card"><span>🌾</span><div><strong>膳食纤维</strong><small>19 / 30 克</small><div class="progress"><i style="width:63%"></i></div></div><b>63%</b></article>
+          <article class="nutrient-card"><span>🧂</span><div><strong>钠</strong><small>1,180 / 2,000 毫克</small><div class="progress"><i style="width:59%"></i></div></div><b>59%</b></article>
+          <article class="nutrient-card"><span>🥛</span><div><strong>钙</strong><small>640 / 1,000 毫克</small><div class="progress"><i style="width:64%"></i></div></div><b>64%</b></article>
+          <article class="nutrient-card"><span>Fe</span><div><strong>铁</strong><small>12 / 18 毫克</small><div class="progress"><i style="width:67%"></i></div></div><b>67%</b></article>
+          <article class="nutrient-card"><span>K</span><div><strong>钾</strong><small>2,180 / 3,500 毫克</small><div class="progress"><i style="width:62%"></i></div></div><b>62%</b></article>
+          <article class="nutrient-card warning"><span>D</span><div><strong>维生素 D</strong><small>3 / 15 微克</small><div class="progress"><i style="width:20%"></i></div></div><b>20%</b></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-recipes">
+        <div class="toolbar-card card">
+          <label class="search-box"><span>⌕</span><input id="recipe-search" type="search" placeholder="搜索食谱或食材" /></label>
+          <button class="filter-button">全部食谱⌄</button>
+        </div>
+        <div class="section-heading"><div><span class="label">我的收藏</span><h2>常用食谱</h2></div><button class="text-button">新建食谱 ＋</button></div>
+        <div class="recipe-grid" id="recipe-grid">
+          <article class="recipe-card" data-name="鸡肉藜麦沙拉"><div class="recipe-visual green">🥗<span>高蛋白</span></div><div><small>午餐 · 25 分钟</small><h3>鸡肉藜麦沙拉</h3><p>508 千卡 · 蛋白质 42 克</p><div class="recipe-tags"><span>简单</span><span>轻食</span></div></div></article>
+          <article class="recipe-card" data-name="蓝莓燕麦酸奶碗"><div class="recipe-visual purple">🥣<span>早餐</span></div><div><small>早餐 · 8 分钟</small><h3>蓝莓燕麦酸奶碗</h3><p>356 千卡 · 蛋白质 21 克</p><div class="recipe-tags"><span>快速</span><span>高纤</span></div></div></article>
+          <article class="recipe-card" data-name="番茄牛肉意面"><div class="recipe-visual orange">🍝<span>一锅料理</span></div><div><small>晚餐 · 35 分钟</small><h3>番茄牛肉意面</h3><p>612 千卡 · 蛋白质 36 克</p><div class="recipe-tags"><span>家庭</span><span>饱腹</span></div></div></article>
+          <article class="recipe-card" data-name="香蕉花生酱吐司"><div class="recipe-visual yellow">🍞<span>零食</span></div><div><small>零食 · 5 分钟</small><h3>香蕉花生酱吐司</h3><p>328 千卡 · 蛋白质 12 克</p><div class="recipe-tags"><span>快速</span><span>能量</span></div></div></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-profile">
+        <div class="profile-hero card">
+          <div class="large-avatar">J</div>
+          <div><span class="label">个人档案</span><h2>Jin，下午好</h2><p>连续记录 12 天 · 本月完成率 86%</p></div>
+          <button class="outline-button">编辑资料</button>
+        </div>
+        <div class="profile-grid">
+          <article class="card bmi-card"><span class="label">身体指标</span><div class="bmi-ring"><strong>22.1</strong><small>BMI · 正常</small></div><div class="mini-stats"><p><strong>70.8</strong><span>公斤</span></p><p><strong>179</strong><span>厘米</span></p><p><strong>27</strong><span>岁</span></p></div></article>
+          <article class="card goal-card"><span class="label">当前目标</span><h2>保持体重</h2><p>目标体重 70 公斤</p><div class="goal-track"><i style="width:82%"></i><span style="left:82%"></span></div><div class="goal-labels"><small>75 公斤</small><small>还差 0.8 公斤</small><small>70 公斤</small></div><button class="outline-button wide">查看体重趋势</button></article>
+        </div>
+        <div class="settings-list card">
+          <button><span class="setting-icon">◎</span><span><strong>每日目标</strong><small>2,000 千卡 · 碳水 50% · 蛋白质 24%</small></span><b>›</b></button>
+          <button><span class="setting-icon">◐</span><span><strong>外观与单位</strong><small>跟随系统 · 千卡 · 公制</small></span><b>›</b></button>
+          <button><span class="setting-icon">⇅</span><span><strong>导入与导出</strong><small>备份日记、食谱和体重记录</small></span><b>›</b></button>
+          <button><span class="setting-icon">♢</span><span><strong>隐私与数据</strong><small>数据仅保存在你的设备上</small></span><b>›</b></button>
+        </div>
+      </section>
+    </main>
+
+    <aside class="insight-panel">
+      <header><span class="label">今日建议</span><h2>离目标不远了</h2></header>
+      <div class="insight-illustration"><span>🥬</span><i></i></div>
+      <p>晚餐补充约 <strong id="suggestion-kcal">728 千卡</strong>，优先选择蛋白质和深色蔬菜。</p>
+      <div class="suggestion-card"><span>🍗</span><div><strong>推荐搭配</strong><p>香煎鸡胸肉 + 烤蔬菜 + 糙米</p></div><b>约 620</b></div>
+      <div class="streak-card"><div><span>12</span><small>天</small></div><p><strong>连续记录</strong><small>这是你最长的连续记录</small></p></div>
+      <button class="scan-button"><span>▣</span><div><strong>扫描包装条码</strong><small>快速查找食物</small></div><b>→</b></button>
+    </aside>
+
+    <nav class="mobile-nav" aria-label="移动端主导航">
+      <button class="active" data-view="home"><span>⌂</span>今日</button>
+      <button data-view="diary"><span>▤</span>日记</button>
+      <button class="mobile-add" data-open-add aria-label="记录食物">＋</button>
+      <button data-view="recipes"><span>▦</span>食谱</button>
+      <button data-view="profile"><span>◉</span>我的</button>
+    </nav>
+  </div>
+
+  <dialog class="add-dialog" id="add-dialog">
+    <form method="dialog" id="add-form">
+      <header class="dialog-header">
+        <div><span class="label">快速记录</span><h2>添加到 <span id="meal-name">晚餐</span></h2></div>
+        <button value="cancel" class="close-button" aria-label="关闭">×</button>
+      </header>
+      <div class="dialog-tabs"><button type="button" class="active" data-add-tab="search">搜索食物</button><button type="button" data-add-tab="quick">快捷添加</button></div>
+      <div class="add-panel active" id="add-search-panel">
+        <label class="search-box large"><span>⌕</span><input id="food-search" type="search" placeholder="搜索食物、品牌或条码" autofocus /></label>
+        <p class="recent-label">最近添加</p>
+        <div class="search-results">
+          <button type="button" class="result-item" data-food="香煎鸡胸肉" data-kcal="248" data-carbs="0" data-protein="46" data-fat="6"><span>🍗</span><span><strong>香煎鸡胸肉</strong><small>180 克 · 自定义食物</small></span><b>248 千卡</b></button>
+          <button type="button" class="result-item" data-food="糙米饭" data-kcal="216" data-carbs="45" data-protein="5" data-fat="2"><span>🍚</span><span><strong>糙米饭</strong><small>1 碗 · 200 克</small></span><b>216 千卡</b></button>
+          <button type="button" class="result-item" data-food="烤时蔬" data-kcal="132" data-carbs="18" data-protein="4" data-fat="5"><span>🥦</span><span><strong>烤时蔬</strong><small>西兰花、甜椒、南瓜 · 250 克</small></span><b>132 千卡</b></button>
+        </div>
       </div>
-    </section>
+      <div class="add-panel" id="add-quick-panel">
+        <label>名称<input id="quick-name" type="text" placeholder="例如：晚餐" /></label>
+        <div class="form-grid"><label>热量（千卡）<input id="quick-kcal" type="number" min="1" placeholder="0" /></label><label>蛋白质（克）<input id="quick-protein" type="number" min="0" placeholder="可选" /></label><label>碳水（克）<input id="quick-carbs" type="number" min="0" placeholder="可选" /></label><label>脂肪（克）<input id="quick-fat" type="number" min="0" placeholder="可选" /></label></div>
+        <button type="button" class="add-submit" id="quick-submit">添加记录</button>
+      </div>
+    </form>
+  </dialog>
 
-    <section class="features">
-      <h2>What you can actually do with it</h2>
-      <ul>
-        <li>
-          <strong>Log meals and snacks</strong> across breakfast, lunch, dinner, and the small
-          unaccounted-for moments in between, and see how the day adds up at a glance.
-        </li>
-        <li>
-          <strong>Search a large food database</strong> backed by Open Food Facts and USDA Food
-          Data Central, so most of the things in your kitchen are already there.
-        </li>
-        <li>
-          <strong>Scan barcodes</strong> on packaged food, which is sometimes the difference
-          between logging the snack and forgetting about it.
-        </li>
-        <li>
-          <strong>Keep a food diary</strong> by date, so you can look back at what a week of
-          eating actually looked like rather than what you think it looked like.
-        </li>
-        <li>
-          <strong>Review daily nutrients</strong>, including fibre, sodium, sugar, calcium,
-          iron, potassium, vitamin D, vitamin B12, and magnesium.
-        </li>
-        <li>
-          <strong>Stay private</strong>. Your data is encrypted on-device. No account is
-          required to use the app, and nothing is shared without your consent.
-        </li>
-      </ul>
-    </section>
-
-    <section class="privacy">
-      <h2>About privacy</h2>
-      <p>
-        OpenNutriTracker treats your nutrition history as the personal information it is.
-        Everything you log lives in a local <a href="https://github.com/IO-Design-Team/hive_ce">Hive</a>
-        database on your device, encrypted with a key kept in your platform's secure storage.
-        There is no cloud sync, because there is no cloud account. If you want to move your data
-        to another phone, you can export it from the Settings screen as a plain zip and bring
-        it across yourself. The full data-protection statement lives at
-        <a href="https://www.iubenda.com/privacy-policy/53501884">iubenda</a>.
-      </p>
-    </section>
-
-    <section class="contribute">
-      <h2>Contributing</h2>
-      <p>
-        OpenNutriTracker is open source under the GPLv3 license, and contributions are warmly
-        welcomed. If you have spotted a bug, would like to translate the app into another
-        language, or want to propose a feature, the
-        <a href="https://github.com/jinjiacheng586-max/OpenNutriTracker/issues">issue tracker</a>
-        is the place to start. The
-        <a href="https://github.com/jinjiacheng586-max/OpenNutriTracker/blob/main/CONTRIBUTING.md">CONTRIBUTING guide</a>
-        in the repository covers the conventions, including the requirement to target the
-        <code>develop</code> branch and the steps for adding localized strings.
-      </p>
-    </section>
-
-    <section class="disclaimer">
-      <h2>A note before you rely on it</h2>
-      <p>
-        OpenNutriTracker is not a medical application, and the nutritional values it shows
-        are estimates rather than clinical measurements. Please be gentle with yourself when
-        you use it, and if you have specific dietary needs, talk to a professional who can
-        meet you with the context you are in. Use during illness, pregnancy, or lactation
-        is not recommended.
-      </p>
-    </section>
-  </main>
-
-  <footer>
-    <p>
-      Originally created by <a href="https://github.com/simonoppowa">Simon Oppowa</a> and
-      maintained in this fork by
-      <a href="https://github.com/jinjiacheng586-max">jinjiacheng586-max</a> with help from
-      <a href="https://github.com/jinjiacheng586-max/OpenNutriTracker/graphs/contributors">contributors</a>.
-      Licensed under
-      <a href="https://github.com/jinjiacheng586-max/OpenNutriTracker/blob/main/LICENSE">GPLv3</a>.
-    </p>
-  </footer>
-
+  <div class="toast" id="toast" role="status"><span>✓</span><p><strong>已添加</strong><small id="toast-message">记录已保存到晚餐</small></p></div>
+  <script src="app.js"></script>
 </body>
 </html>
