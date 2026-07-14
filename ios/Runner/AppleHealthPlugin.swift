@@ -261,9 +261,17 @@ final class AppleHealthPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
                 forIdentifier: .activeEnergyBurned
             )
             let values = (samples as? [HKWorkout] ?? []).map { workout in
-                let energy = activeType.flatMap {
-                    workout.statistics(for: $0)?.sumQuantity()
-                }?.doubleValue(for: .kilocalorie()) ?? 0
+                let energyQuantity: HKQuantity?
+                if #available(iOS 16.0, *) {
+                    energyQuantity = activeType.flatMap {
+                        workout.statistics(for: $0)?.sumQuantity()
+                    }
+                } else {
+                    energyQuantity = workout.totalEnergyBurned
+                }
+                let energy = energyQuantity?.doubleValue(
+                    for: .kilocalorie()
+                ) ?? 0
                 return [
                     "id": workout.uuid.uuidString,
                     "activityType": Self.activityName(
