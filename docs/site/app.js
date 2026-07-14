@@ -1,11 +1,29 @@
-const state = {
+const STORAGE_KEY = 'opennutri-web-state-v1';
+const defaultState = {
   consumed: 1272,
   carbs: 142,
   protein: 81,
   fat: 42,
   meal: 'dinner',
   weekOffset: 0,
+  foods: [],
+  dark: false,
 };
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    return saved && typeof saved === 'object' ? { ...defaultState, ...saved } : { ...defaultState };
+  } catch {
+    return { ...defaultState };
+  }
+}
+
+const state = loadState();
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
 
 const views = {
   home: ['今天吃得怎么样？', '2026年7月14日 · 星期二'],
@@ -70,9 +88,27 @@ function addFood(food) {
   state.protein += Number(food.protein || 0);
   state.fat += Number(food.fat || 0);
 
-  const card = document.querySelector(`[data-meal="${state.meal}"]`);
+  const savedFood = {
+    name: String(food.name || '快捷记录'),
+    kcal,
+    carbs: Number(food.carbs || 0),
+    protein: Number(food.protein || 0),
+    fat: Number(food.fat || 0),
+    meal: state.meal,
+  };
+  state.foods.push(savedFood);
+  appendFoodRow(savedFood, true);
+  saveState();
+  updateDashboard();
+  dialog.close();
+  showToast(`${savedFood.name} 已保存到${mealNames[state.meal]}`);
+}
+
+function appendFoodRow(food, updateMealTotal = false) {
+  const card = document.querySelector(`[data-meal="${food.meal}"]`);
+  if (!card) return;
   const current = Number(card.querySelector('[data-meal-kcal]').textContent.replace(/,/g, ''));
-  card.querySelector('[data-meal-kcal]').textContent = (current + kcal).toLocaleString('zh-CN');
+  card.querySelector('[data-meal-kcal]').textContent = (current + Number(food.kcal || 0)).toLocaleString('zh-CN');
   card.classList.remove('muted');
   const empty = card.querySelector('.empty-meal');
   if (empty) {
@@ -83,11 +119,19 @@ function addFood(food) {
   const list = card.querySelector('.food-list');
   const row = document.createElement('div');
   row.className = 'food-item';
-  row.innerHTML = `<span class="food-emoji">🍴</span><span><strong>${food.name}</strong><small>刚刚添加 · 1 份</small></span><b>${kcal}</b>`;
+  const emoji = document.createElement('span');
+  emoji.className = 'food-emoji';
+  emoji.textContent = '🍴';
+  const details = document.createElement('span');
+  const name = document.createElement('strong');
+  name.textContent = food.name;
+  const note = document.createElement('small');
+  note.textContent = updateMealTotal ? '刚刚添加 · 1 份' : '已保存在本机 · 1 份';
+  details.append(name, note);
+  const energy = document.createElement('b');
+  energy.textContent = Number(food.kcal || 0).toLocaleString('zh-CN');
+  row.append(emoji, details, energy);
   list.appendChild(row);
-  updateDashboard();
-  dialog.close();
-  showToast(`${food.name} 已保存到${mealNames[state.meal]}`);
 }
 
 document.querySelectorAll('.result-item').forEach((item) => item.addEventListener('click', () => addFood({
@@ -141,6 +185,8 @@ function showToast(message) {
 
 document.getElementById('theme-toggle').addEventListener('click', (event) => {
   document.body.classList.toggle('dark');
+  state.dark = document.body.classList.contains('dark');
+  saveState();
   event.currentTarget.textContent = document.body.classList.contains('dark') ? '☀' : '☾';
 });
 
@@ -164,3 +210,14 @@ document.getElementById('food-search').addEventListener('input', (event) => {
 
 const initialView = location.hash.slice(1);
 if (views[initialView]) setView(initialView);
+
+state.foods.forEach((food) => appendFoodRow(food));
+if (state.dark) {
+  document.body.classList.add('dark');
+  document.getElementById('theme-toggle').textContent = '☀';
+}
+updateDashboard();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js'));
+}
