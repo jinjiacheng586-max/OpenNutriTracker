@@ -63,6 +63,8 @@
 	<string>Camera permission is used to scan barcodes and to attach a photo to a custom meal so it's easier to recognise in your saved list.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
     <string>Used to attach a photo to a custom meal so it's easier to recognise in your saved list, and for exporting data.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>OpenNutriTracker reads your active energy, resting energy, and workouts to show today's calories burned. It never writes health data.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

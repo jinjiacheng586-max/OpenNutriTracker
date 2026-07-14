@@ -51,3 +51,26 @@ fvm flutter run --flavor develop
 If more than one simulator is available, pass its device ID with `-d`. If CocoaPods reports a stale or missing sandbox, run `pod install` in the `ios` directory and try again.
 
 The `develop` scheme uses a separate bundle identifier and display name so it can coexist with an App Store build. Physical-device deployment requires an Apple Development team and code-signing configuration in Xcode.
+
+## Test the Apple Health integration
+
+The Apple Health connection is read-only. It requests access to active energy,
+resting energy, and workouts; it never requests permission to save HealthKit
+data.
+
+Before signing a physical-device build, enable **HealthKit** and **Background
+Delivery** for both App IDs in the Apple Developer portal:
+
+- `com.opennutritracker.ont.opennutritracker`
+- `com.opennutritracker.ont.opennutritracker.develop`
+
+Regenerate the affected development and distribution provisioning profiles
+after enabling the capability. The repository already contains the matching
+entitlements and Xcode capability configuration.
+
+Use a real iPhone, optionally paired with an Apple Watch. HealthKit background
+delivery isn't supported by the Simulator. In the app, tap **Connect Apple
+Health**, grant the three read permissions, then record a workout or allow the
+Watch to sync one. The card refreshes when HealthKit reports a change and every
+time the app returns to the foreground. iOS can coalesce background deliveries,
+so updates are near-real-time rather than guaranteed second-by-second.
