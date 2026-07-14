@@ -18,6 +18,11 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif; }
+@media (display-mode: standalone) {
+  html { background: var(--bg); }
+  body { overscroll-behavior-y: none; -webkit-user-select: none; user-select: none; }
+  input { -webkit-user-select: text; user-select: text; }
+}
 button, input { font: inherit; }
 button { color: inherit; }
 
