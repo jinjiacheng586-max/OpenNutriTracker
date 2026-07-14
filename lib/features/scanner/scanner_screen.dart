@@ -9,7 +9,6 @@ import 'package:opennutritracker/core/domain/entity/intake_type_entity.dart';
 import 'package:opennutritracker/core/presentation/widgets/error_dialog.dart';
 import 'package:opennutritracker/core/utils/locator.dart';
 import 'package:opennutritracker/core/utils/navigation_options.dart';
-import 'package:opennutritracker/features/add_meal/presentation/add_meal_type.dart';
 import 'package:opennutritracker/features/meal_detail/meal_detail_screen.dart';
 import 'package:opennutritracker/features/scanner/presentation/scanner_bloc.dart';
 import 'package:opennutritracker/features/scanner/util/barcode_check_digit.dart';
@@ -245,7 +244,8 @@ class _ScannerScreenState extends State<ScannerScreen>
             Semantics(
               identifier: 'scanner-manual-entry-submit',
               child: TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(controller.text.trim()),
+                onPressed: () =>
+                    Navigator.of(dialogContext).pop(controller.text.trim()),
                 child: Text(S.of(dialogContext).scannerManualEntrySubmit),
               ),
             ),
@@ -295,15 +295,15 @@ class ScannerScreenArguments {
     DateTime forDay,
     IntakeTypeEntity forIntakeType, {
     this.initialBarcode,
-  })  : day = forDay,
-        intakeTypeEntity = forIntakeType,
-        pickMode = false;
+  }) : day = forDay,
+       intakeTypeEntity = forIntakeType,
+       pickMode = false;
 
   /// Opens the scanner in "pick" mode: on a successful product load it pops
   /// the resulting [MealEntity] back to the caller instead of routing into
   /// the meal-detail logging screen. Used by the recipe ingredient picker.
   ScannerScreenArguments.pick({this.initialBarcode})
-      : day = null,
-        intakeTypeEntity = null,
-        pickMode = true;
+    : day = null,
+      intakeTypeEntity = null,
+      pickMode = true;
 }

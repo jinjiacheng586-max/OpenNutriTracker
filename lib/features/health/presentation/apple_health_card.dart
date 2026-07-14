@@ -101,14 +101,12 @@ class _AppleHealthCardState extends State<AppleHealthCard>
         _authorizing = false;
       });
       if (summary != null) _acceptSummary(summary);
-      if (_subscription == null) {
-        _subscription = widget.service.watchTodaySummary().listen(
-          _acceptSummary,
-          onError: (Object error) {
-            if (mounted) setState(() => _error = error);
-          },
-        );
-      }
+      _subscription ??= widget.service.watchTodaySummary().listen(
+        _acceptSummary,
+        onError: (Object error) {
+          if (mounted) setState(() => _error = error);
+        },
+      );
     } catch (error) {
       if (mounted) {
         setState(() {

@@ -10,8 +10,6 @@ import 'package:opennutritracker/core/domain/usecase/get_config_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_intake_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/get_tracked_day_usecase.dart';
 import 'package:opennutritracker/core/domain/usecase/update_intake_usecase.dart';
-import 'package:opennutritracker/core/utils/locator.dart';
-import 'package:opennutritracker/features/diary/presentation/bloc/diary_bloc.dart';
 
 part 'calendar_day_event.dart';
 
@@ -87,8 +85,6 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
     );
 
     final trackedDayEntity = await _getTrackedDayUsecase.getTrackedDay(day);
-    final configData = await _getConfigUsecase.getConfig();
-
     // #150: only surface per-meal targets when this calendar day has a
     // tracked daily kcal goal — otherwise the share has nothing to divide
     // and "0 / 0 kcal" reads as broken rather than helpful.
@@ -159,7 +155,8 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
         day,
         carbsTracked: oldIntake.totalCarbsGram - newIntake.totalCarbsGram,
         fatTracked: oldIntake.totalFatsGram - newIntake.totalFatsGram,
-        proteinTracked: oldIntake.totalProteinsGram - newIntake.totalProteinsGram,
+        proteinTracked:
+            oldIntake.totalProteinsGram - newIntake.totalProteinsGram,
       );
     } else if (newIntake.amount > oldIntake.amount) {
       await _addTrackedDayUsecase.addDayCaloriesTracked(
@@ -170,13 +167,9 @@ class CalendarDayBloc extends Bloc<CalendarDayEvent, CalendarDayState> {
         day,
         carbsTracked: newIntake.totalCarbsGram - oldIntake.totalCarbsGram,
         fatTracked: newIntake.totalFatsGram - oldIntake.totalFatsGram,
-        proteinTracked: newIntake.totalProteinsGram - oldIntake.totalProteinsGram,
+        proteinTracked:
+            newIntake.totalProteinsGram - oldIntake.totalProteinsGram,
       );
     }
-  }
-
-  Future<void> _updateDiaryPage(DateTime day) async {
-    locator<DiaryBloc>().add(const LoadDiaryYearEvent());
-    locator<CalendarDayBloc>().add(LoadCalendarDayEvent(day));
   }
 }
