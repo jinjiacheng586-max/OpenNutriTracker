@@ -96,135 +96,150 @@ void main() {
 
   String headerKcalOnly() => '200 ${S.current.kcalLabel}';
 
-  testWidgets(
-    'shows kcal + macro breakdown when showMealMacros is true',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(_wrapWithMaterial(IntakeVerticalList(
-        day: DateTime(2026, 1, 1),
-        title: 'Breakfast',
-        listIcon: Icons.bakery_dining_outlined,
-        addMealType: AddMealType.breakfastType,
-        intakeList: intakes,
-        usesImperialUnits: false,
-        showMealMacros: true,
-        onDeleteIntakeCallback: (_, _) {},
-      )));
-      await tester.pump();
+  testWidgets('shows kcal + macro breakdown when showMealMacros is true', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        IntakeVerticalList(
+          day: DateTime(2026, 1, 1),
+          title: 'Breakfast',
+          listIcon: Icons.bakery_dining_outlined,
+          addMealType: AddMealType.breakfastType,
+          intakeList: intakes,
+          usesImperialUnits: false,
+          showMealMacros: true,
+          onDeleteIntakeCallback: (_, _) {},
+        ),
+      ),
+    );
+    await tester.pump();
 
-      expect(find.text(headerWithMacros()), findsOneWidget);
-    },
-  );
+    expect(find.text(headerWithMacros()), findsOneWidget);
+  });
 
-  testWidgets(
-    'shows only kcal when showMealMacros is false',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(_wrapWithMaterial(IntakeVerticalList(
-        day: DateTime(2026, 1, 1),
-        title: 'Breakfast',
-        listIcon: Icons.bakery_dining_outlined,
-        addMealType: AddMealType.breakfastType,
-        intakeList: intakes,
-        usesImperialUnits: false,
-        showMealMacros: false,
-        onDeleteIntakeCallback: (_, _) {},
-      )));
-      await tester.pump();
+  testWidgets('shows only kcal when showMealMacros is false', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        IntakeVerticalList(
+          day: DateTime(2026, 1, 1),
+          title: 'Breakfast',
+          listIcon: Icons.bakery_dining_outlined,
+          addMealType: AddMealType.breakfastType,
+          intakeList: intakes,
+          usesImperialUnits: false,
+          showMealMacros: false,
+          onDeleteIntakeCallback: (_, _) {},
+        ),
+      ),
+    );
+    await tester.pump();
 
-      expect(find.text(headerWithMacros()), findsNothing);
-    },
-  );
+    expect(find.text(headerWithMacros()), findsNothing);
+  });
 
   testWidgets(
     'defaults to showing macro breakdown when showMealMacros is omitted',
     (WidgetTester tester) async {
-      await tester.pumpWidget(_wrapWithMaterial(IntakeVerticalList(
-        day: DateTime(2026, 1, 1),
-        title: 'Breakfast',
-        listIcon: Icons.bakery_dining_outlined,
-        addMealType: AddMealType.breakfastType,
-        intakeList: intakes,
-        usesImperialUnits: false,
-        onDeleteIntakeCallback: (_, _) {},
-      )));
+      await tester.pumpWidget(
+        _wrapWithMaterial(
+          IntakeVerticalList(
+            day: DateTime(2026, 1, 1),
+            title: 'Breakfast',
+            listIcon: Icons.bakery_dining_outlined,
+            addMealType: AddMealType.breakfastType,
+            intakeList: intakes,
+            usesImperialUnits: false,
+            onDeleteIntakeCallback: (_, _) {},
+          ),
+        ),
+      );
       await tester.pump();
 
       expect(find.text(headerWithMacros()), findsOneWidget);
     },
   );
 
-  testWidgets(
-    'shows no header text when intake list is empty',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(_wrapWithMaterial(IntakeVerticalList(
-        day: DateTime(2026, 1, 1),
-        title: 'Breakfast',
-        listIcon: Icons.bakery_dining_outlined,
-        addMealType: AddMealType.breakfastType,
-        intakeList: const [],
-        usesImperialUnits: false,
-        showMealMacros: true,
-        onDeleteIntakeCallback: (_, _) {},
-      )));
-      await tester.pump();
+  testWidgets('shows no header text when intake list is empty', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        IntakeVerticalList(
+          day: DateTime(2026, 1, 1),
+          title: 'Breakfast',
+          listIcon: Icons.bakery_dining_outlined,
+          addMealType: AddMealType.breakfastType,
+          intakeList: const [],
+          usesImperialUnits: false,
+          showMealMacros: true,
+          onDeleteIntakeCallback: (_, _) {},
+        ),
+      ),
+    );
+    await tester.pump();
 
-      expect(find.text(headerWithMacros()), findsNothing);
-      expect(find.text(headerKcalOnly()), findsNothing);
-    },
-  );
+    expect(find.text(headerWithMacros()), findsNothing);
+    expect(find.text(headerKcalOnly()), findsNothing);
+  });
 
-  // Regression: the QR-share/import options were dropped from the popup
-  // menu when the macros toggle PR landed on a stale base. Lock in the
-  // expected items so it can't happen again silently.
-  testWidgets(
-    'popup menu shows Copy/Delete/Share/Import for non-empty section',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(_wrapWithMaterial(IntakeVerticalList(
-        day: DateTime(2026, 1, 1),
-        title: 'Breakfast',
-        listIcon: Icons.bakery_dining_outlined,
-        addMealType: AddMealType.breakfastType,
-        intakeList: intakes,
-        usesImperialUnits: false,
-        showMealMacros: true,
-        onCopyIntakeCallback: (_, _, _) {},
-        onDeleteIntakeCallback: (_, _) {},
-      )));
-      await tester.pump();
+  testWidgets('popup menu shows Copy and Delete for a non-empty section', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        IntakeVerticalList(
+          day: DateTime(2026, 1, 1),
+          title: 'Breakfast',
+          listIcon: Icons.bakery_dining_outlined,
+          addMealType: AddMealType.breakfastType,
+          intakeList: intakes,
+          usesImperialUnits: false,
+          showMealMacros: true,
+          onCopyIntakeCallback: (_, _, _) {},
+          onDeleteIntakeCallback: (_, _) {},
+        ),
+      ),
+    );
+    await tester.pump();
 
-      await tester.tap(find.byType(PopupMenuButton<VerticalListPopupMenuSelections>));
-      await tester.pumpAndSettle();
+    await tester.tap(
+      find.byType(PopupMenuButton<VerticalListPopupMenuSelections>),
+    );
+    await tester.pumpAndSettle();
 
-      expect(find.text(S.current.dialogCopyLabel), findsOneWidget);
-      expect(find.text(S.current.deleteAllLabel), findsOneWidget);
-      expect(find.text(S.current.shareMealLabel), findsOneWidget);
-      expect(find.text(S.current.importMealLabel), findsOneWidget);
-    },
-  );
+    expect(find.text(S.current.dialogCopyLabel), findsOneWidget);
+    expect(find.text(S.current.deleteAllLabel), findsOneWidget);
+  });
 
-  testWidgets(
-    'popup menu shows only Import when section is empty',
-    (WidgetTester tester) async {
-      await tester.pumpWidget(_wrapWithMaterial(IntakeVerticalList(
-        day: DateTime(2026, 1, 1),
-        title: 'Breakfast',
-        listIcon: Icons.bakery_dining_outlined,
-        addMealType: AddMealType.breakfastType,
-        intakeList: const [],
-        usesImperialUnits: false,
-        showMealMacros: true,
-        onDeleteIntakeCallback: (_, _) {},
-      )));
-      await tester.pump();
+  testWidgets('popup menu has no actions when the section is empty', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrapWithMaterial(
+        IntakeVerticalList(
+          day: DateTime(2026, 1, 1),
+          title: 'Breakfast',
+          listIcon: Icons.bakery_dining_outlined,
+          addMealType: AddMealType.breakfastType,
+          intakeList: const [],
+          usesImperialUnits: false,
+          showMealMacros: true,
+          onDeleteIntakeCallback: (_, _) {},
+        ),
+      ),
+    );
+    await tester.pump();
 
-      await tester.tap(find.byType(PopupMenuButton<VerticalListPopupMenuSelections>));
-      await tester.pumpAndSettle();
+    await tester.tap(
+      find.byType(PopupMenuButton<VerticalListPopupMenuSelections>),
+    );
+    await tester.pumpAndSettle();
 
-      // Empty section: no Copy/Delete/Share — nothing to act on. Import is
-      // always available so the user can scan a QR to populate the section.
-      expect(find.text(S.current.dialogCopyLabel), findsNothing);
-      expect(find.text(S.current.deleteAllLabel), findsNothing);
-      expect(find.text(S.current.shareMealLabel), findsNothing);
-      expect(find.text(S.current.importMealLabel), findsOneWidget);
-    },
-  );
+    // Empty section: there is nothing to copy or delete.
+    expect(find.text(S.current.dialogCopyLabel), findsNothing);
+    expect(find.text(S.current.deleteAllLabel), findsNothing);
+  });
 }
