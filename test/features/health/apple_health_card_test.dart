@@ -8,6 +8,32 @@ import 'package:opennutritracker/features/health/presentation/apple_health_card.
 import 'package:provider/provider.dart';
 
 void main() {
+  testWidgets('explains that the connection reads Apple Watch Fitness data', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider<EnergyUnitProvider>(
+        create: (_) => EnergyUnitProvider(),
+        child: const MaterialApp(
+          locale: Locale('zh'),
+          supportedLocales: [Locale('en'), Locale('zh')],
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          home: Scaffold(
+            body: AppleHealthCard(service: _DisconnectedAppleHealthService()),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('连接 Apple Watch / 健身'), findsOneWidget);
+    expect(find.text('读取手表记录的活动卡路里、总消耗和每次运动。'), findsOneWidget);
+  });
+
   testWidgets('shows read-only daily energy and workout details', (
     tester,
   ) async {
@@ -50,7 +76,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Apple 健康 · 今日消耗'), findsOneWidget);
+    expect(find.text('Apple Watch · 今日活动'), findsOneWidget);
     expect(find.text('2000 kcal'), findsOneWidget);
     expect(find.text('1500 kcal'), findsOneWidget);
     expect(find.text('500 kcal'), findsOneWidget);
@@ -58,6 +84,18 @@ void main() {
     expect(find.text('300 kcal'), findsOneWidget);
     expect(callbackSummary, same(summary));
   });
+}
+
+class _DisconnectedAppleHealthService extends AppleHealthService {
+  const _DisconnectedAppleHealthService();
+
+  @override
+  Future<AppleHealthStatus> getStatus() async {
+    return const AppleHealthStatus(
+      available: true,
+      authorizationRequested: false,
+    );
+  }
 }
 
 class _FakeAppleHealthService extends AppleHealthService {

@@ -52,11 +52,12 @@ If more than one simulator is available, pass its device ID with `-d`. If CocoaP
 
 The `develop` scheme uses a separate bundle identifier and display name so it can coexist with an App Store build. Physical-device deployment requires an Apple Development team and code-signing configuration in Xcode.
 
-## Test the Apple Health integration
+## Test the Apple Watch / Fitness integration
 
-The Apple Health connection is read-only. It requests access to active energy,
-resting energy, and workouts; it never requests permission to save HealthKit
-data.
+The connection is read-only. Apple Watch activity appears in the Fitness app,
+while third-party apps read the same system data through HealthKit. The app
+requests active energy, resting energy, and workouts; it never requests
+permission to save data.
 
 Before signing a physical-device build, enable **HealthKit** and **Background
 Delivery** for both App IDs in the Apple Developer portal:
@@ -68,9 +69,9 @@ Regenerate the affected development and distribution provisioning profiles
 after enabling the capability. The repository already contains the matching
 entitlements and Xcode capability configuration.
 
-Use a real iPhone, optionally paired with an Apple Watch. HealthKit background
-delivery isn't supported by the Simulator. In the app, tap **Connect Apple
-Health**, grant the three read permissions, then record a workout or allow the
-Watch to sync one. The card refreshes when HealthKit reports a change and every
-time the app returns to the foreground. iOS can coalesce background deliveries,
-so updates are near-real-time rather than guaranteed second-by-second.
+Use a real iPhone paired with an Apple Watch. Background delivery isn't
+supported by the Simulator. In the app, tap **Connect Apple Watch / Fitness**,
+grant the three read permissions, then record a workout or allow the Watch to
+sync one. The card refreshes when the system reports a change and every time
+the app returns to the foreground. iOS can coalesce background deliveries, so
+updates are near-real-time rather than guaranteed second-by-second.

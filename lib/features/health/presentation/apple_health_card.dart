@@ -420,12 +420,16 @@ class _HealthCopy {
   factory _HealthCopy.of(BuildContext context) =>
       _HealthCopy(Localizations.localeOf(context).languageCode == 'zh');
 
-  String get connectTitle => zh ? '连接 Apple 健康' : 'Connect Apple Health';
+  String get connectTitle => zh
+      ? '连接 Apple Watch / 健身'
+      : 'Connect Apple Watch / Fitness';
   String get connectBody => zh
-      ? '只读取今天的活动能量、静息能量和运动记录。'
-      : 'Read today’s active energy, resting energy, and workouts only.';
+      ? '读取手表记录的活动卡路里、总消耗和每次运动。'
+      : 'Read watch-recorded active calories, total burn, and workouts.';
   String get connectAction => zh ? '连接' : 'Connect';
-  String get todayEnergy => zh ? 'Apple 健康 · 今日消耗' : 'Apple Health · Today';
+  String get todayEnergy => zh
+      ? 'Apple Watch · 今日活动'
+      : 'Apple Watch · Today';
   String get waiting => zh ? '等待健康数据' : 'Waiting for health data';
   String updatedAt(String time) => zh ? '更新于 $time' : 'Updated at $time';
   String get refresh => zh ? '刷新健康数据' : 'Refresh health data';
@@ -439,8 +443,8 @@ class _HealthCopy {
   String get noWorkouts => zh ? '今天还没有运动记录。' : 'No workouts recorded today.';
   String durationMinutes(int minutes) => zh ? '$minutes 分钟' : '$minutes min';
   String get readOnlyFootnote => zh
-      ? '只读连接。运动消耗已包含在活动能量中，不会重复计算。'
-      : 'Read only. Workout energy is already included in active energy.';
+      ? '只读连接。数据来自 Apple Watch，并通过苹果系统接口读取；运动消耗不会重复计算。'
+      : 'Read only. Apple Watch data is read through Apple’s system API; workout energy is not double counted.';
 
   String activityName(String value) {
     final names = zh ? _zhActivities : _enActivities;
