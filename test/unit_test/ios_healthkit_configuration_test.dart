@@ -20,16 +20,19 @@ void main() {
     expect(project, contains('com.apple.HealthKit.BackgroundDelivery = {'));
   });
 
-  test('native bridge requests the Apple Watch activity types shown in app', () {
-    final plugin = File(
-      'ios/Runner/AppleHealthPlugin.swift',
-    ).readAsStringSync();
-    final infoPlist = File('ios/Runner/Info.plist').readAsStringSync();
+  test(
+    'native bridge requests the Apple Watch activity types shown in app',
+    () {
+      final plugin = File(
+        'ios/Runner/AppleHealthPlugin.swift',
+      ).readAsStringSync();
+      final infoPlist = File('ios/Runner/Info.plist').readAsStringSync();
 
-    expect(plugin, contains('forIdentifier: .activeEnergyBurned'));
-    expect(plugin, contains('forIdentifier: .basalEnergyBurned'));
-    expect(plugin, contains('HKObjectType.workoutType()'));
-    expect(infoPlist, contains('<key>NSHealthShareUsageDescription</key>'));
-    expect(infoPlist, contains('Apple Watch active energy'));
-  });
+      expect(plugin, contains('forIdentifier: .activeEnergyBurned'));
+      expect(plugin, contains('forIdentifier: .basalEnergyBurned'));
+      expect(plugin, contains('HKObjectType.workoutType()'));
+      expect(infoPlist, contains('<key>NSHealthShareUsageDescription</key>'));
+      expect(infoPlist, contains('Apple Watch active energy'));
+    },
+  );
 }

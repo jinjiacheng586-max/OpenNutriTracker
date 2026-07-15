@@ -420,16 +420,13 @@ class _HealthCopy {
   factory _HealthCopy.of(BuildContext context) =>
       _HealthCopy(Localizations.localeOf(context).languageCode == 'zh');
 
-  String get connectTitle => zh
-      ? '连接 Apple Watch / 健身'
-      : 'Connect Apple Watch / Fitness';
+  String get connectTitle =>
+      zh ? '连接 Apple Watch / 健身' : 'Connect Apple Watch / Fitness';
   String get connectBody => zh
       ? '读取手表记录的活动卡路里、总消耗和每次运动。'
       : 'Read watch-recorded active calories, total burn, and workouts.';
   String get connectAction => zh ? '连接' : 'Connect';
-  String get todayEnergy => zh
-      ? 'Apple Watch · 今日活动'
-      : 'Apple Watch · Today';
+  String get todayEnergy => zh ? 'Apple Watch · 今日活动' : 'Apple Watch · Today';
   String get waiting => zh ? '等待健康数据' : 'Waiting for health data';
   String updatedAt(String time) => zh ? '更新于 $time' : 'Updated at $time';
   String get refresh => zh ? '刷新健康数据' : 'Refresh health data';
