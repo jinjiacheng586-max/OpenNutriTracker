@@ -9,9 +9,6 @@ import UserNotifications
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
     GeneratedPluginRegistrant.register(with: self)
-    if let healthRegistrar = registrar(forPlugin: "AppleHealthPlugin") {
-      AppleHealthPlugin.register(with: healthRegistrar)
-    }
     // Required by flutter_local_notifications so foreground notifications
     // are displayed instead of being silently dropped (#312).
     // FlutterAppDelegate already conforms to UNUserNotificationCenterDelegate,

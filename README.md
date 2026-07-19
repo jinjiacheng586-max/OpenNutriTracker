@@ -12,7 +12,7 @@
 </p>
 
 ## Description
-OpenNutriTracker is an open-source mobile application designed to simplify nutritional tracking and management. Whether you are looking to improve your health, lose weight, or simply maintain a balanced diet, OpenNutriTracker provides a minimalistic interface to easily track and analyze your daily nutrition.
+OpenNutriTracker is a local-first web app for manually tracking calories, macros, meals, recipes, and weight. The active web product lives in [`docs/site`](docs/site), works responsively on desktop and mobile, and can be installed as a PWA. It does not connect to Apple Health or Apple Watch.
 
 ## Screenshots
 <p align="center">
@@ -25,32 +25,39 @@ OpenNutriTracker is an open-source mobile application designed to simplify nutri
   <img alt="Logo" src="docs/site/screenshots/4_en-US.png" width="20%" />
 </p>
 
-## Install
-[<img src="docs/site/screenshots/appstore_banner.png" width="30%">](https://apps.apple.com/us/app/opennutritracker/id6451490901)
+## Run the web app
+
+Serve [`docs/site`](docs/site) with any static web server. For example:
+
+```sh
+python3 -m http.server 8080 --directory docs/site
+```
+
+Then open `http://localhost:8080`. The GitHub Pages workflow deploys the same directory.
 
 ## Key Features
 
-- **🍎 Nutritional tracking:** Log meals and snacks against a large food database (Open Food Facts plus a curated subset of USDA FDC). Each entry can be searched, scanned, or added straight as a number when you already know the calorie cost.
-- **📓 Food diary:** A calendar-driven diary that breaks the day into Breakfast, Lunch, Dinner, and Snack, with drag-to-rearrange between meals and sorting by time or macro contribution.
-- **🥕 Micronutrient panel:** Day and week views for fibre, sodium, saturated fat, sugar, calcium, iron, potassium, vitamin D, vitamin B12, and magnesium, with optional Dietary Reference Intake bars from the IOM tables so you can see where you sit against the reference range.
-- **🍽️ Custom meals + recipes:** Build a one-off custom meal or save a reusable recipe with photo, brand, and barcode. The recipe builder has its own ingredient picker with barcode scanning so you can compose meals from real products without leaving the screen.
-- **⚡ Quick add:** When you already know roughly how much you ate, skip the search flow entirely — Quick add takes a title plus kcal (and optional macros) and logs it straight to the meal section.
-- **📷 Barcode scanner:** Scan packaged items for instant lookup, paste a barcode manually when the camera struggles, or attach a barcode to a custom meal so future scans recognise your own foods.
-- **⚖️ Weight history:** Capture weight during onboarding and on demand, see the trend on a chart with a dashed line at your target weight, and optionally taper the calorie goal as you approach it.
-- **🎨 Appearance:** Follow the iOS system appearance or choose light or dark mode.
+- **🍎 Manual nutrition tracking:** Enter a name and calories, with optional protein, carbohydrates, and fat, and assign it to breakfast, lunch, dinner, or snacks.
+- **⚡ Fast logging:** Re-add deduplicated recent items, create reusable quick templates, or choose an item from the food search without retyping nutrition values.
+- **🔎 Food search:** Includes an offline starter list and searches the Open Food Facts catalogue for packaged-food matches when online.
+- **📓 Food diary:** See today's meals and a seven-day calorie trend, with delete controls for individual entries.
+- **🍽️ Recipes:** Save reusable meal combinations and log them again with one click.
+- **⚖️ Weight history:** Record weight by date and review the trend and history.
+- **🎨 Appearance:** Follow the system appearance or choose light or dark mode.
 - **🔢 kcal or kJ:** Switch the energy unit globally; every diary entry, target, and chart reflects the choice.
-- **📤 Export and import:** Back up and restore your diary, recipes, and weight history as a JSON zip, or export diary data as CSV.
-- **🔒 Privacy first:** Personal nutrition data is stored locally on the device and no anonymous diagnostics are sent.
+- **📤 Export and import:** Back up and restore the complete browser database as JSON.
+- **🔒 Privacy first:** Personal nutrition data is stored in the current browser. Food-search text is sent to Open Food Facts only when online catalogue search is used.
 - **🚫💰 No subscriptions, in-app purchases, or ads:** OpenNutriTracker is free, with no paid tier and no advertising.
 
 ## Privacy
 See [Data Protection](https://www.iubenda.com/privacy-policy/53501884)
-- **Data Encryption**: All collected user data is encrypted and stored locally on your device
-- **Local-first storage**: Nutrition, recipe, and weight records remain on your device unless you explicitly export them.
+- **Browser-local storage**: Nutrition, recipe, template, and weight records remain in the current browser unless you explicitly export them.
+- **Backups recommended**: Clearing browser site data can remove local records, so the app provides JSON export and import.
 - **Open-Source**: OpenNutriTracker is an open-source application
 
-### Getting Started With Development
-See the [Getting Started](GettingStarted.md) file for more information.
+### Legacy Flutter code
+
+The repository still contains the earlier Flutter/iOS implementation for reference and migration work. [`GettingStarted.md`](GettingStarted.md) documents that legacy toolchain; new product work should target [`docs/site`](docs/site).
 
 The data export bundle (Settings → Export / Import App Data → Export) is
 documented at [`docs/export-format.md`](docs/export-format.md) — both the
