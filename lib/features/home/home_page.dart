@@ -17,8 +17,6 @@ import 'package:opennutritracker/features/home/presentation/bloc/home_bloc.dart'
 import 'package:opennutritracker/features/home/presentation/widgets/dashboard_widget.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/intake_vertical_list.dart';
 import 'package:opennutritracker/features/home/presentation/widgets/quick_weight_widget.dart';
-import 'package:opennutritracker/features/health/domain/apple_health_summary.dart';
-import 'package:opennutritracker/features/health/presentation/apple_health_card.dart';
 import 'package:opennutritracker/generated/l10n.dart';
 
 class HomePage extends StatefulWidget {
@@ -32,7 +30,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final log = Logger('HomePage');
 
   late HomeBloc _homeBloc;
-  AppleHealthSummary? _appleHealthSummary;
   bool _isIntakeDragging = false;
   bool get _isDragging => _isIntakeDragging;
 
@@ -148,8 +145,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               totalKcalDaily: totalKcalDaily,
               totalKcalLeft: totalKcalLeft,
               totalKcalSupplied: totalKcalSupplied,
-              totalKcalBurned:
-                  _appleHealthSummary?.activeEnergyKcal ?? totalKcalBurned,
+              totalKcalBurned: totalKcalBurned,
               totalCarbsIntake: totalCarbsIntake,
               totalFatsIntake: totalFatsIntake,
               totalProteinsIntake: totalProteinsIntake,
@@ -157,7 +153,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               totalFatsGoal: totalFatsGoal,
               totalProteinsGoal: totalProteinsGoal,
             ),
-            AppleHealthCard(onSummaryChanged: _onAppleHealthSummaryChanged),
             if (CalorieGoalCalc.isBelowRecommendedDailyKcalFloor(
               goalKcal: totalKcalDaily,
               gender: userGender,
@@ -358,10 +353,5 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// and it is correct under any boundary setting.
   void _refreshPageOnDayChange() {
     _homeBloc.add(const LoadItemsEvent());
-  }
-
-  void _onAppleHealthSummaryChanged(AppleHealthSummary summary) {
-    if (!mounted) return;
-    setState(() => _appleHealthSummary = summary);
   }
 }
