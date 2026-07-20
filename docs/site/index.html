@@ -37,7 +37,7 @@
       </header>
 
       <section class="view active" id="view-home">
-        <div class="today-strip"><div><span id="today-weekday">星期二</span><strong id="today-date">7月14日</strong></div><span class="local-badge">仅此设备</span></div>
+        <div class="today-strip"><div><span id="today-weekday">星期二</span><strong id="today-date">7月14日</strong></div><button class="day-type-toggle" id="day-type-toggle" type="button">🏋️ 训练日</button></div>
 
         <div class="dashboard-grid">
           <article class="card energy-card">
@@ -46,7 +46,7 @@
               <div class="energy-ring" id="energy-ring"><div><strong id="remaining-energy">—</strong><span id="remaining-label">待设置目标</span></div></div>
               <div class="energy-stats">
                 <p><span class="dot green"></span><span>已摄入<strong id="consumed-energy">0 千卡</strong></span></p>
-                <p><span class="dot pale"></span><span>每日目标<strong id="goal-energy">未设置</strong></span></p>
+                <p><span class="dot pale"></span><span>今日目标<strong id="goal-energy">未设置</strong></span></p>
               </div>
             </div>
           </article>
@@ -92,7 +92,7 @@
           <article class="card goal-card"><span class="label">当前目标</span><h2 id="goal-title">尚未设置</h2><p id="goal-description">编辑个人档案，填写你的目标体重</p><button class="outline-button wide" data-action="weight-view">查看体重趋势</button></article>
         </div>
         <div class="settings-list card">
-          <button data-action="goals"><span class="setting-icon">◎</span><span><strong>每日目标</strong><small id="goal-setting-summary">设置热量和三大营养素</small></span><b>›</b></button>
+          <button data-action="goals"><span class="setting-icon">◎</span><span><strong>训练日与休息日目标</strong><small id="goal-setting-summary">分别设置两套营养目标</small></span><b>›</b></button>
           <button data-action="appearance"><span class="setting-icon">◐</span><span><strong>外观与单位</strong><small id="appearance-summary">跟随系统 · 千卡 · 公制</small></span><b>›</b></button>
           <button data-action="data"><span class="setting-icon">⇅</span><span><strong>导入、导出与清空</strong><small>备份或删除本机上的所有数据</small></span><b>›</b></button>
           <button data-action="privacy"><span class="setting-icon">♢</span><span><strong>隐私与数据</strong><small>了解数据保存方式</small></span><b>›</b></button>
@@ -144,7 +144,7 @@
 
   <dialog id="profile-dialog" class="sheet"><form id="profile-form"><header class="dialog-header"><div><span class="label">我的</span><h2>编辑个人档案</h2></div><button type="button" class="close-button" data-close>×</button></header><div class="form-grid profile-fields"><label class="full">名字<input name="name" required maxlength="30" /></label><label>出生日期<input name="birthDate" type="date" /></label><label>生理性别<select name="gender"><option value="">不填写</option><option value="female">女性</option><option value="male">男性</option><option value="other">其他</option></select></label><label>身高（厘米）<input name="height" type="number" min="80" max="250" step="0.1" /></label><label>目标体重（公斤）<input name="targetWeight" type="number" min="20" max="400" step="0.1" /></label></div><button class="primary-button wide" type="submit">保存资料</button></form></dialog>
 
-  <dialog id="goals-dialog" class="sheet"><form id="goals-form"><header class="dialog-header"><div><span class="label">设置</span><h2>每日目标</h2></div><button type="button" class="close-button" data-close>×</button></header><div class="form-grid"><label>热量（千卡）<input name="kcal" type="number" min="800" max="6000" required /></label><label>碳水（克）<input name="carbs" type="number" min="0" required /></label><label>蛋白质（克）<input name="protein" type="number" min="0" required /></label><label>脂肪（克）<input name="fat" type="number" min="0" required /></label></div><button class="primary-button wide" type="submit">保存目标</button></form></dialog>
+  <dialog id="goals-dialog" class="sheet goals-sheet"><form id="goals-form"><header class="dialog-header"><div><span class="label">练三休一</span><h2>训练日与休息日目标</h2></div><button type="button" class="close-button" data-close>×</button></header><p class="panel-hint goal-hint">App 会按 3 个训练日、1 个休息日自动循环。你也可以在首页临时切换今天的类型。</p><section class="goal-profile"><div class="goal-profile-heading"><span>🏋️</span><div><strong>训练日目标</strong><small>训练日采用这套热量与三大营养素</small></div></div><div class="form-grid"><label>热量（千卡）<input name="trainingKcal" type="number" min="800" max="6000" required /></label><label>碳水（克）<input name="trainingCarbs" type="number" min="0" required /></label><label>蛋白质（克）<input name="trainingProtein" type="number" min="0" required /></label><label>脂肪（克）<input name="trainingFat" type="number" min="0" required /></label></div></section><section class="goal-profile rest-goal"><div class="goal-profile-heading"><span>🌿</span><div><strong>休息日目标</strong><small>休息日采用这套热量与三大营养素</small></div></div><div class="form-grid"><label>热量（千卡）<input name="restKcal" type="number" min="800" max="6000" required /></label><label>碳水（克）<input name="restCarbs" type="number" min="0" required /></label><label>蛋白质（克）<input name="restProtein" type="number" min="0" required /></label><label>脂肪（克）<input name="restFat" type="number" min="0" required /></label></div></section><label class="cycle-day-field">今天在本轮周期中是<select name="cycleDay"><option value="0">训练第 1 天</option><option value="1">训练第 2 天</option><option value="2">训练第 3 天</option><option value="3">休息日</option></select><small>保存后，后续日期会从今天的位置继续按练三休一轮换。</small></label><button class="primary-button wide" type="submit">保存两套目标</button></form></dialog>
 
   <dialog id="appearance-dialog" class="sheet"><form id="appearance-form"><header class="dialog-header"><div><span class="label">设置</span><h2>外观与单位</h2></div><button type="button" class="close-button" data-close>×</button></header><div class="stacked-fields"><label>外观<select name="theme"><option value="system">跟随系统</option><option value="light">浅色</option><option value="dark">深色</option></select></label><label>能量单位<select name="energyUnit"><option value="kcal">千卡（kcal）</option><option value="kj">千焦（kJ）</option></select></label><label>测量单位<select name="measurement"><option value="metric">公制（公斤、厘米）</option><option value="imperial">英制（磅、英尺）</option></select></label></div><button class="primary-button wide" type="submit">保存设置</button></form></dialog>
 

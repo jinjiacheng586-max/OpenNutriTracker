@@ -38,6 +38,7 @@ Then open `http://localhost:8080`. The GitHub Pages workflow deploys the same di
 ## Key Features
 
 - **🍎 Manual nutrition tracking:** Enter a name and calories, with optional protein, carbohydrates, and fat, and assign it to breakfast, lunch, dinner, or snacks.
+- **🏋️ Training/rest targets:** Keep separate calorie and macro targets for training days and rest days, automatically rotate through a three-on/one-off schedule, and override today's type when plans change.
 - **⚡ Fast logging:** Re-add deduplicated recent items, create reusable quick templates, or choose an item from the food search without retyping nutrition values.
 - **🔎 Food search:** Includes an offline starter list and searches the Open Food Facts catalogue for packaged-food matches when online.
 - **📓 Food diary:** See today's meals and a seven-day calorie trend, with delete controls for individual entries.
