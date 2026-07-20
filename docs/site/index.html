@@ -70,8 +70,14 @@
         </article>
         <div class="section-heading"><div><span class="label">身体变化</span><h2>体重趋势</h2></div><button class="primary-button small" data-action="weight">＋ 记录体重</button></div>
         <article class="card weight-card">
+          <div class="weight-card-header"><div><span class="label">趋势分析</span><strong id="weight-period-label">全部记录</strong></div><div class="range-tabs" aria-label="体重图表范围"><button type="button" data-weight-range="30">30 天</button><button type="button" data-weight-range="90">90 天</button><button type="button" class="active" data-weight-range="all">全部</button></div></div>
           <div id="weight-chart" class="weight-chart empty-chart"><div><span>⚖</span><strong>还没有体重记录</strong><small>添加第一次体重后，这里会显示趋势</small></div></div>
           <div class="weight-summary" id="weight-summary"></div>
+          <div class="weight-insight" id="weight-insight" hidden></div>
+        </article>
+        <article class="card monthly-weight-card" id="monthly-weight-card" hidden>
+          <div class="card-heading"><div><span class="label">按月汇总</span><h2>每月平均体重</h2></div><small id="monthly-weight-subtitle"></small></div>
+          <div class="monthly-weight-list" id="monthly-weight-list"></div>
         </article>
         <div class="section-heading"><div><span class="label">今日摄入</span><h2>营养素</h2></div></div>
         <div class="nutrient-grid" id="nutrient-grid"></div>
@@ -79,6 +85,7 @@
 
       <section class="view" id="view-recipes">
         <div class="library-tabs"><button class="active" data-library-tab="per100g">常用食材</button><button data-library-tab="serving">常用食谱</button></div>
+        <label class="library-search"><span>⌕</span><input id="library-search" type="search" placeholder="搜索常用食材" autocomplete="off" /><button type="button" id="library-search-clear" aria-label="清空搜索" hidden>×</button></label>
         <div id="ingredient-library-copy"><div class="section-heading first"><div><span class="label">每 100 克营养</span><h2>食材快捷库</h2></div><button class="primary-button small" data-action="ingredient">＋ 添加食材</button></div><p class="ingredient-intro">输入实际食用克数并选择餐次，营养会自动换算。内置数据是通用起始值，请按包装标签及生熟状态修改。</p></div>
         <div id="recipe-library-copy" hidden><div class="section-heading first"><div><span class="label">固定一份营养</span><h2>常用食谱</h2></div><button class="primary-button small" data-action="recipe">＋ 添加食谱</button></div><p class="ingredient-intro">把经常烧的整道菜保存成一份，下次只需选择份数和餐次，仍然可以随时修改。</p></div>
         <div class="recipe-grid" id="recipe-grid"></div>
@@ -141,7 +148,7 @@
         <button class="primary-button wide" type="submit">保存记录</button>
       </div>
       <div class="add-panel" id="add-recent-panel"><p class="panel-hint">最近记录会自动去重，点一下即可再次添加。</p><div class="search-results" id="recent-results"></div></div>
-      <div class="add-panel" id="add-templates-panel"><p class="panel-hint">在“手动输入”中勾选保存模板，常吃的餐食就会留在这里。</p><div class="search-results" id="template-results"></div></div>
+      <div class="add-panel" id="add-templates-panel"><p class="panel-hint">在“手动输入”中勾选保存模板，常吃的餐食就会留在这里。</p><label class="template-search search-box">搜索模板<input id="template-search" type="search" placeholder="输入模板名称" autocomplete="off" /></label><div class="search-results" id="template-results"></div></div>
       <div class="add-panel" id="add-search-panel"><div class="food-search-row"><label class="search-box">搜索<input id="food-search" type="search" placeholder="搜索食物或品牌" /></label><button class="outline-button" id="online-food-search" type="button">搜索在线库</button></div><p class="panel-hint" id="food-search-status">输入时筛选内置食物；需要更多包装食品时，再点击“搜索在线库”。</p><div class="search-results" id="search-results"></div></div>
     </form>
   </dialog>
@@ -156,7 +163,7 @@
 
   <dialog id="burn-dialog" class="sheet"><form id="burn-form"><header class="dialog-header"><div><span class="label">来自手表</span><h2>记录每日热量消耗</h2></div><button type="button" class="close-button" data-close>×</button></header><p class="panel-hint">手动填写手表显示的当天总热量消耗。App 会用“摄入 − 消耗”计算热量盈余或缺口。</p><div class="form-grid"><label>日期<input name="date" type="date" required /></label><label>总消耗（千卡）<input name="kcal" type="number" min="0" max="10000" step="1" required placeholder="例如：2600" /></label></div><button class="primary-button wide" type="submit">保存并计算收支</button></form></dialog>
 
-  <dialog id="recipe-dialog" class="sheet"><form id="recipe-form"><header class="dialog-header"><div><span class="label">常用食材</span><h2 id="ingredient-editor-title">添加食材</h2></div><button type="button" class="close-button" data-close>×</button></header><div class="form-grid ingredient-name-fields"><label class="full">食材名称<input name="name" required placeholder="例如：鸡胸肉（熟）" /></label><label>图标<input name="emoji" maxlength="4" placeholder="🍗" /></label><label>营养数据基准<select name="basis" id="ingredient-basis"><option value="per100g">每 100 克（推荐）</option><option value="serving">固定一份</option></select></label></div><p class="panel-hint ingredient-basis-hint" id="ingredient-basis-hint">下面填写每 100 克所含的营养；记录时只需输入吃了多少克。</p><div class="form-grid"><label>热量（千卡）<input name="kcal" type="number" min="0" step="0.1" required /></label><label>蛋白质（克）<input name="protein" type="number" min="0" step="0.1" required /></label><label>碳水（克）<input name="carbs" type="number" min="0" step="0.1" required /></label><label>脂肪（克）<input name="fat" type="number" min="0" step="0.1" required /></label></div><button class="primary-button wide" id="ingredient-save-button" type="submit">保存食材</button></form></dialog>
+  <dialog id="recipe-dialog" class="sheet"><form id="recipe-form"><header class="dialog-header"><div><span class="label">快捷库</span><h2 id="ingredient-editor-title">添加食材</h2></div><button type="button" class="close-button" data-close>×</button></header><div class="library-type-picker"><span>保存为</span><label><input type="radio" name="libraryType" value="ingredient" checked /><strong>食材</strong><small>按每 100 克换算</small></label><label><input type="radio" name="libraryType" value="recipe" /><strong>食谱</strong><small>按一整份记录</small></label></div><div class="form-grid ingredient-name-fields"><label class="full">食材名称<input name="name" required placeholder="例如：鸡胸肉（熟）" /></label><label>图标<input name="emoji" maxlength="4" placeholder="🍗" /></label></div><p class="panel-hint ingredient-basis-hint" id="ingredient-basis-hint">下面填写每 100 克所含的营养；记录时只需输入吃了多少克。</p><div class="form-grid"><label>热量（千卡）<input name="kcal" type="number" min="0" step="0.1" required /></label><label>蛋白质（克）<input name="protein" type="number" min="0" step="0.1" required /></label><label>碳水（克）<input name="carbs" type="number" min="0" step="0.1" required /></label><label>脂肪（克）<input name="fat" type="number" min="0" step="0.1" required /></label></div><button class="primary-button wide" id="ingredient-save-button" type="submit">保存食材</button></form></dialog>
 
   <dialog id="ingredient-log-dialog" class="sheet"><form id="ingredient-log-form"><header class="dialog-header"><div><span class="label">快速记录</span><h2 id="ingredient-log-name">食材</h2></div><button type="button" class="close-button" data-close>×</button></header><div class="form-grid"><label id="ingredient-amount-label">食用重量（克）<input name="amount" type="number" min="1" step="1" required /></label><label>添加到<select name="meal"><option value="breakfast">早餐</option><option value="lunch">午餐</option><option value="dinner">晚餐</option><option value="snack">零食</option></select></label></div><p class="panel-hint ingredient-log-help" id="ingredient-log-help"></p><button class="primary-button wide" type="submit">计算并记录</button></form></dialog>
 

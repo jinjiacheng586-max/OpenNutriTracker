@@ -1,12 +1,12 @@
-const STORAGE_KEY = 'opennutri-personal-v6';
-const LEGACY_STORAGE_KEYS = ['opennutri-personal-v5', 'opennutri-personal-v4', 'opennutri-personal-v3', 'opennutri-personal-v2', 'opennutri-web-state-v1'];
+const STORAGE_KEY = 'opennutri-personal-v7';
+const LEGACY_STORAGE_KEYS = ['opennutri-personal-v6', 'opennutri-personal-v5', 'opennutri-personal-v4', 'opennutri-personal-v3', 'opennutri-personal-v2', 'opennutri-web-state-v1'];
 function localDateKey(date = new Date()) {
   const pad = (value) => String(value).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 const todayISO = () => localDateKey();
 const emptyState = () => ({
-  version: 6,
+  version: 7,
   initialized: false,
   profile: { name: '', birthDate: '', gender: '', height: null, targetWeight: null },
   goals: { kcal: null, carbs: null, protein: null, fat: null },
@@ -19,6 +19,7 @@ const emptyState = () => ({
   foods: [],
   weights: [],
   burns: [],
+  ingredients: [],
   recipes: [],
   ingredientsSeeded: false,
   templates: [],
@@ -30,12 +31,22 @@ function loadState() {
       || LEGACY_STORAGE_KEYS.map((key) => localStorage.getItem(key)).find(Boolean);
     if (!raw) return emptyState();
     const saved = JSON.parse(raw);
-    if (![2, 3, 4, 5, 6].includes(saved?.version)) return emptyState();
+    if (![2, 3, 4, 5, 6, 7].includes(saved?.version)) return emptyState();
+    // v6 used one mixed `recipes` array for both ingredient shortcuts and
+    // recipes. v7 keeps two real collections, so adding or changing one can
+    // never silently place it in the other tab.
+    const legacyLibrary = Array.isArray(saved.recipes) ? saved.recipes : [];
+    const savedIngredients = saved.version >= 7 && Array.isArray(saved.ingredients)
+      ? saved.ingredients
+      : legacyLibrary.filter((item) => item.basis === 'per100g');
+    const savedRecipes = saved.version >= 7
+      ? legacyLibrary
+      : legacyLibrary.filter((item) => item.basis !== 'per100g');
     const legacyGoals = { ...emptyState().goals, ...(saved.goals || {}) };
     const migrated = {
       ...emptyState(),
       ...saved,
-      version: 6,
+      version: 7,
       goals: legacyGoals,
       goalProfiles: {
         training: { ...legacyGoals, ...(saved.goalProfiles?.training || {}) },
@@ -49,7 +60,8 @@ function loadState() {
       foods: Array.isArray(saved.foods) ? saved.foods : [],
       weights: Array.isArray(saved.weights) ? saved.weights : [],
       burns: Array.isArray(saved.burns) ? saved.burns : [],
-      recipes: Array.isArray(saved.recipes) ? saved.recipes : [],
+      ingredients: savedIngredients.map((item) => ({ ...item, basis: 'per100g' })),
+      recipes: savedRecipes.map((item) => ({ ...item, basis: 'serving' })),
       templates: Array.isArray(saved.templates) ? saved.templates : [],
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
@@ -63,7 +75,10 @@ let state = loadState();
 let selectedMeal = 'breakfast';
 let activeIngredientId = null;
 let editingIngredientId = null;
+let editingTemplateId = null;
 let libraryFilter = 'per100g';
+let librarySearchQuery = '';
+let weightRange = 'all';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const mealNames = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐', snack: '零食' };
 const mealIcons = { breakfast: '☀', lunch: '☁', dinner: '☾', snack: '✦' };
@@ -114,11 +129,12 @@ function saveState() {
 }
 
 function ensureStarterIngredients() {
-  state.recipes = state.recipes.map((item) => ({ ...item, basis: item.basis || 'serving', emoji: item.emoji || '🍴' }));
+  state.ingredients = (state.ingredients || []).map((item) => ({ ...item, basis: 'per100g', emoji: item.emoji || '🍴' }));
+  state.recipes = (state.recipes || []).map((item) => ({ ...item, basis: 'serving', emoji: item.emoji || '🍲' }));
   if (state.ingredientsSeeded) return;
-  const names = new Set(state.recipes.map((item) => String(item.name).trim().toLowerCase()));
+  const names = new Set(state.ingredients.map((item) => String(item.name).trim().toLowerCase()));
   const starters = starterIngredients.filter((item) => !names.has(item.name.toLowerCase()));
-  state.recipes = [...starters, ...state.recipes];
+  state.ingredients = [...starters, ...state.ingredients];
   state.ingredientsSeeded = true;
   saveState();
 }
@@ -357,38 +373,116 @@ function renderNutrients() {
   }).join('');
 }
 
+function weightDelta(valueKg) {
+  const value = state.settings.measurement === 'imperial' ? valueKg * 2.20462 : valueKg;
+  return `${value > 0 ? '+' : ''}${formatNumber(value, 1)} ${state.settings.measurement === 'imperial' ? '磅' : '公斤'}`;
+}
+
+function weightMagnitude(valueKg) {
+  const value = state.settings.measurement === 'imperial' ? Math.abs(valueKg) * 2.20462 : Math.abs(valueKg);
+  return `${formatNumber(value, 1)} ${state.settings.measurement === 'imperial' ? '磅' : '公斤'}`;
+}
+
+function average(values) {
+  return values.length ? values.reduce((sum, value) => sum + number(value), 0) / values.length : null;
+}
+
+// Least-squares slope uses every reading in the selected period. This avoids
+// calling a one-day fluctuation between the first and last point a "trend".
+function weightTrendPerDay(weights) {
+  if (weights.length < 2) return null;
+  const xs = weights.map((item) => dateSerial(item.date));
+  const xMean = average(xs);
+  const yMean = average(weights.map((item) => item.weight));
+  const denominator = xs.reduce((sum, x) => sum + ((x - xMean) ** 2), 0);
+  if (!denominator) return 0;
+  return weights.reduce((sum, item, index) => sum + ((xs[index] - xMean) * (item.weight - yMean)), 0) / denominator;
+}
+
+function renderMonthlyWeights(weights) {
+  const card = document.getElementById('monthly-weight-card');
+  const container = document.getElementById('monthly-weight-list');
+  const groups = new Map();
+  weights.forEach((item) => {
+    const key = item.date.slice(0, 7);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(item.weight);
+  });
+  const months = [...groups].sort(([a], [b]) => a.localeCompare(b)).map(([month, values]) => ({ month, average: average(values), count: values.length })).slice(-6);
+  card.hidden = months.length === 0;
+  if (!months.length) return;
+  document.getElementById('monthly-weight-subtitle').textContent = `最近 ${months.length} 个月`;
+  const values = months.map((item) => item.average);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const spread = Math.max(max - min, 0.5);
+  container.innerHTML = months.map((item, index) => {
+    const previous = months[index - 1];
+    const delta = previous ? item.average - previous.average : null;
+    const width = 38 + ((item.average - min) / spread * 62);
+    const [year, month] = item.month.split('-');
+    return `<div class="monthly-weight-row"><span>${year.slice(2)}年${number(month)}月</span><div class="monthly-weight-bar"><i style="width:${Math.min(100, width)}%"></i></div><div class="monthly-weight-value"><strong>${displayWeight(item.average)}</strong><small>${item.count} 次${delta == null ? '' : ` · 较上月 ${weightDelta(delta)}`}</small></div></div>`;
+  }).join('');
+}
+
 function renderWeightChart() {
   const chart = document.getElementById('weight-chart');
   const weights = [...state.weights].sort((a, b) => a.date.localeCompare(b.date));
   const summary = document.getElementById('weight-summary');
+  const insight = document.getElementById('weight-insight');
   const history = document.getElementById('weight-history');
+  const todaySerial = dateSerial(todayISO());
+  const periodWeights = weightRange === 'all' ? weights : weights.filter((item) => dateSerial(item.date) >= todaySerial - number(weightRange));
+  document.querySelectorAll('[data-weight-range]').forEach((button) => button.classList.toggle('active', button.dataset.weightRange === weightRange));
+  document.getElementById('weight-period-label').textContent = weightRange === 'all' ? '全部记录' : `最近 ${weightRange} 天`;
   history.innerHTML = '';
+  renderMonthlyWeights(weights);
   if (!weights.length) {
     chart.className = 'weight-chart empty-chart';
-    chart.innerHTML = '<div><span>⚖</span><strong>还没有体重记录</strong><small>添加第一次体重后，这里会显示趋势</small></div>';
+    chart.innerHTML = '<div><span>⚖</span><strong>还没有体重记录</strong><small>添加第一次体重后，这里会显示趋势分析和月均值</small></div>';
     summary.innerHTML = '';
+    insight.hidden = true;
     return;
   }
-  const recent = weights.slice(-12);
-  const values = recent.map((item) => item.weight);
-  const min = Math.min(...values) - 1;
-  const max = Math.max(...values) + 1;
-  const range = Math.max(1, max - min);
-  const firstSerial = dateSerial(recent[0].date);
-  const lastSerial = dateSerial(recent.at(-1).date);
-  const dateRange = Math.max(1, lastSerial - firstSerial);
-  const points = recent.map((item) => {
-    const x = recent.length === 1 ? 50 : 7 + (dateSerial(item.date) - firstSerial) / dateRange * 86;
-    const y = 88 - (item.weight - min) / range * 70;
-    return { x, y, item };
-  });
-  const polyline = points.map((point) => `${point.x},${point.y}`).join(' ');
-  chart.className = 'weight-chart';
-  chart.innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="体重趋势图"><line x1="5" y1="88" x2="95" y2="88" class="chart-axis"/><polyline points="${polyline}" class="chart-line"/>${points.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="2.2" class="chart-dot"/>`).join('')}</svg><div class="chart-labels"><span>${recent[0].date.slice(5)}</span><span>${recent.at(-1).date.slice(5)}</span></div>`;
-  const first = weights[0].weight;
-  const latest = weights.at(-1).weight;
-  const change = latest - first;
-  summary.innerHTML = `<p><span>最新体重</span><strong>${displayWeight(latest)}</strong></p><p><span>总变化</span><strong>${change > 0 ? '+' : ''}${formatNumber(state.settings.measurement === 'imperial' ? change * 2.20462 : change, 1)} ${state.settings.measurement === 'imperial' ? '磅' : '公斤'}</strong></p><p><span>记录次数</span><strong>${weights.length}</strong></p>`;
+  if (!periodWeights.length) {
+    chart.className = 'weight-chart empty-chart';
+    chart.innerHTML = `<div><span>⌁</span><strong>这个区间没有记录</strong><small>切换到更长的时间范围看看</small></div>`;
+    summary.innerHTML = '';
+    insight.hidden = true;
+  } else {
+    const values = periodWeights.map((item) => item.weight);
+    const min = Math.min(...values) - 0.5;
+    const max = Math.max(...values) + 0.5;
+    const range = Math.max(1, max - min);
+    const firstSerial = dateSerial(periodWeights[0].date);
+    const lastSerial = dateSerial(periodWeights.at(-1).date);
+    const dateRange = Math.max(1, lastSerial - firstSerial);
+    const points = periodWeights.map((item) => ({
+      x: periodWeights.length === 1 ? 50 : 7 + (dateSerial(item.date) - firstSerial) / dateRange * 86,
+      y: 88 - (item.weight - min) / range * 70,
+      item,
+    }));
+    const polyline = points.map((point) => `${point.x},${point.y}`).join(' ');
+    chart.className = 'weight-chart';
+    chart.innerHTML = `<svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="${weightRange === 'all' ? '全部' : `最近${weightRange}天`}体重趋势图"><line x1="5" y1="88" x2="95" y2="88" class="chart-axis"/><polyline points="${polyline}" class="chart-line"/>${points.map((point) => `<circle cx="${point.x}" cy="${point.y}" r="2.2" class="chart-dot"><title>${point.item.date} ${displayWeight(point.item.weight)}</title></circle>`).join('')}</svg><div class="chart-labels"><span>${periodWeights[0].date.slice(5)}</span><span>${periodWeights.at(-1).date.slice(5)}</span></div>`;
+    const latest = weights.at(-1).weight;
+    const periodAverage = average(values);
+    const slope = weightTrendPerDay(periodWeights);
+    const weeklyTrend = slope == null ? null : slope * 7;
+    const target = number(state.profile.targetWeight) || null;
+    summary.innerHTML = `<p><span>最新体重</span><strong>${displayWeight(latest)}</strong></p><p><span>区间平均</span><strong>${displayWeight(periodAverage)}</strong></p><p><span>每周趋势</span><strong>${weeklyTrend == null ? '记录不足' : weightDelta(weeklyTrend)}</strong></p><p><span>${target ? '距离目标' : '区间记录'}</span><strong>${target ? displayWeight(Math.abs(latest - target)) : `${periodWeights.length} 次`}</strong></p>`;
+    if (weeklyTrend == null) {
+      insight.innerHTML = '<span>◎</span><div><strong>再记录一次就能分析趋势</strong><small>趋势会综合区间内的所有记录，不会只拿开头和结尾相减。</small></div>';
+    } else {
+      const stable = Math.abs(weeklyTrend) < 0.05;
+      const direction = stable ? '基本稳定' : weeklyTrend < 0 ? '整体下降' : '整体上升';
+      const icon = stable ? '≈' : weeklyTrend < 0 ? '↘' : '↗';
+      const movingTowardTarget = (latest > target) === (weeklyTrend < 0);
+      const targetCopy = target ? (Math.abs(latest - target) < 0.2 ? '目前已非常接近目标体重。' : movingTowardTarget ? '当前方向正朝目标靠近。' : '当前方向暂时没有朝目标靠近。') : '设置目标体重后，这里还会判断方向是否符合目标。';
+      insight.innerHTML = `<span>${icon}</span><div><strong>${direction}，约 ${weightMagnitude(weeklyTrend)}/周</strong><small>这是根据区间内 ${periodWeights.length} 次记录拟合的趋势，不是简单首尾相减。${targetCopy}</small></div>`;
+    }
+    insight.hidden = false;
+  }
   [...weights].reverse().forEach((item) => {
     const row = document.createElement('div');
     row.innerHTML = `<span>${item.date}</span><strong>${displayWeight(item.weight)}</strong>`;
@@ -444,14 +538,18 @@ function renderProfile() {
 function renderRecipes() {
   const grid = document.getElementById('recipe-grid');
   grid.innerHTML = '';
-  const items = state.recipes.filter((item) => libraryFilter === 'per100g' ? item.basis === 'per100g' : item.basis !== 'per100g');
+  const source = libraryFilter === 'per100g' ? state.ingredients : state.recipes;
+  const query = librarySearchQuery.trim().toLowerCase();
+  const items = source.filter((item) => !query || `${item.name} ${item.emoji || ''}`.toLowerCase().includes(query));
   document.querySelectorAll('[data-library-tab]').forEach((button) => button.classList.toggle('active', button.dataset.libraryTab === libraryFilter));
   document.getElementById('ingredient-library-copy').hidden = libraryFilter !== 'per100g';
   document.getElementById('recipe-library-copy').hidden = libraryFilter === 'per100g';
+  document.getElementById('library-search').placeholder = libraryFilter === 'per100g' ? '搜索常用食材' : '搜索常用食谱';
   const empty = document.getElementById('recipe-empty');
   empty.hidden = items.length > 0;
-  empty.querySelector('h2').textContent = libraryFilter === 'per100g' ? '还没有常用食材' : '还没有常用食谱';
-  empty.querySelector('p').textContent = libraryFilter === 'per100g' ? '添加每 100 克营养，以后只输入克数即可。' : '保存经常烧的菜，下次直接按份记录。';
+  empty.querySelector('h2').textContent = query ? '没有匹配的结果' : libraryFilter === 'per100g' ? '还没有常用食材' : '还没有常用食谱';
+  empty.querySelector('p').textContent = query ? '换个关键词，或清空搜索后查看全部。' : libraryFilter === 'per100g' ? '添加每 100 克营养，以后只输入克数即可。' : '保存经常烧的菜，下次直接按份记录。';
+  empty.querySelector('button').hidden = Boolean(query);
   empty.querySelector('button').textContent = libraryFilter === 'per100g' ? '添加第一个食材' : '添加第一个食谱';
   empty.querySelector('button').dataset.action = libraryFilter === 'per100g' ? 'ingredient' : 'recipe';
   items.forEach((ingredient) => {
@@ -469,7 +567,8 @@ function renderRecipes() {
     });
     card.querySelector('.delete-recipe').addEventListener('click', () => {
       if (!confirm(`删除“${ingredient.name}”吗？`)) return;
-      state.recipes = state.recipes.filter((item) => item.id !== ingredient.id);
+      if (per100g) state.ingredients = state.ingredients.filter((item) => item.id !== ingredient.id);
+      else state.recipes = state.recipes.filter((item) => item.id !== ingredient.id);
       saveState();
       renderRecipes();
       showToast(per100g ? '食材已删除' : '食谱已删除');
@@ -500,18 +599,25 @@ function openIngredientEditor(ingredient = null, defaultBasis = 'per100g') {
   form.reset();
   const basis = ingredient?.basis || defaultBasis;
   const noun = basis === 'per100g' ? '食材' : '食谱';
-  form.querySelector('.dialog-header .label').textContent = basis === 'per100g' ? '常用食材' : '常用食谱';
+  form.elements.libraryType.value = basis === 'per100g' ? 'ingredient' : 'recipe';
   form.elements.name.closest('label').firstChild.textContent = `${noun}名称`;
   form.elements.name.placeholder = basis === 'per100g' ? '例如：鸡胸肉（熟）' : '例如：番茄炖牛肉';
   document.getElementById('ingredient-editor-title').textContent = ingredient ? `修改${noun}` : `添加${noun}`;
   document.getElementById('ingredient-save-button').textContent = ingredient ? '保存修改' : `保存${noun}`;
-  fillForm(form, ingredient || { basis, emoji: basis === 'per100g' ? '🍴' : '🍲' });
+  fillForm(form, ingredient || { emoji: basis === 'per100g' ? '🍴' : '🍲' });
   updateIngredientBasisHint();
   openDialog('recipe-dialog');
 }
 
 function updateIngredientBasisHint() {
-  const basis = document.getElementById('ingredient-basis').value;
+  const basis = document.querySelector('input[name="libraryType"]:checked').value === 'ingredient' ? 'per100g' : 'serving';
+  const noun = basis === 'per100g' ? '食材' : '食谱';
+  const form = document.getElementById('recipe-form');
+  form.elements.name.closest('label').firstChild.textContent = `${noun}名称`;
+  form.elements.name.placeholder = basis === 'per100g' ? '例如：鸡胸肉（熟）' : '例如：番茄炖牛肉';
+  form.querySelector('.dialog-header .label').textContent = basis === 'per100g' ? '常用食材' : '常用食谱';
+  document.getElementById('ingredient-editor-title').textContent = editingIngredientId ? `修改${noun}` : `添加${noun}`;
+  document.getElementById('ingredient-save-button').textContent = editingIngredientId ? '保存修改' : `保存${noun}`;
   document.getElementById('ingredient-basis-hint').textContent = basis === 'per100g'
     ? '下面填写每 100 克所含的营养；记录时只需输入吃了多少克。'
     : '填写整道菜一份的营养；以后记录时可输入 0.5、1、2 等份数。';
@@ -601,6 +707,24 @@ function resultButton(food, { removable = false } = {}) {
   button.addEventListener('click', () => addFood(item));
   row.append(button);
   if (removable) {
+    const actions = document.createElement('span');
+    actions.className = 'template-row-actions';
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'edit-template';
+    edit.setAttribute('aria-label', `修改模板${item.name}`);
+    edit.textContent = '✎';
+    edit.addEventListener('click', () => {
+      editingTemplateId = food.id;
+      document.getElementById('quick-name').value = item.name;
+      document.getElementById('quick-kcal').value = item.kcal;
+      document.getElementById('quick-protein').value = item.protein;
+      document.getElementById('quick-carbs').value = item.carbs;
+      document.getElementById('quick-fat').value = item.fat;
+      document.getElementById('save-as-template').checked = true;
+      document.querySelector('[data-add-tab="quick"]').click();
+      document.getElementById('quick-name').focus();
+    });
     const remove = document.createElement('button');
     remove.type = 'button';
     remove.className = 'remove-template';
@@ -612,7 +736,8 @@ function resultButton(food, { removable = false } = {}) {
       renderQuickLists();
       showToast('快捷模板已删除');
     });
-    row.append(remove);
+    actions.append(edit, remove);
+    row.append(actions);
   }
   return row;
 }
@@ -642,14 +767,18 @@ function renderQuickList(containerId, foods, options = {}) {
 
 function renderQuickLists() {
   renderQuickList('recent-results', recentFoods(), { emptyText: '记录过食物后，这里会自动出现最近项目。' });
-  renderQuickList('template-results', state.templates, { removable: true, emptyText: '还没有快捷模板。可在手动输入时勾选“保存为快捷模板”。' });
+  const query = document.getElementById('template-search').value.trim().toLowerCase();
+  const templates = state.templates.filter((template) => !query || template.name.toLowerCase().includes(query));
+  renderQuickList('template-results', templates, { removable: true, emptyText: query ? '没有匹配的快捷模板。' : '还没有快捷模板。可在手动输入时勾选“保存为快捷模板”。' });
 }
 
 function saveTemplate(food) {
   const item = normalizedFood(food);
-  const existing = state.templates.find((template) => template.name.toLowerCase() === item.name.toLowerCase());
+  const existing = state.templates.find((template) => template.id === editingTemplateId)
+    || state.templates.find((template) => template.name.toLowerCase() === item.name.toLowerCase());
   if (existing) Object.assign(existing, item);
   else state.templates.unshift({ id: crypto.randomUUID(), ...item });
+  editingTemplateId = null;
 }
 
 document.getElementById('add-form').addEventListener('submit', (event) => {
@@ -662,6 +791,7 @@ document.getElementById('add-form').addEventListener('submit', (event) => {
     fat: document.getElementById('quick-fat').value,
   };
   if (document.getElementById('save-as-template').checked) saveTemplate(food);
+  else editingTemplateId = null;
   addFood(food);
   event.currentTarget.reset();
 });
@@ -885,11 +1015,27 @@ document.querySelectorAll('[data-library-tab]').forEach((button) => button.addEv
   renderRecipes();
 }));
 
-document.getElementById('ingredient-basis').addEventListener('change', updateIngredientBasisHint);
+document.getElementById('library-search').addEventListener('input', (event) => {
+  librarySearchQuery = event.target.value;
+  document.getElementById('library-search-clear').hidden = !librarySearchQuery;
+  renderRecipes();
+});
+document.getElementById('library-search-clear').addEventListener('click', () => {
+  librarySearchQuery = '';
+  document.getElementById('library-search').value = '';
+  document.getElementById('library-search-clear').hidden = true;
+  renderRecipes();
+});
+document.getElementById('template-search').addEventListener('input', renderQuickLists);
+document.querySelectorAll('[data-weight-range]').forEach((button) => button.addEventListener('click', () => {
+  weightRange = button.dataset.weightRange;
+  renderWeightChart();
+}));
+document.querySelectorAll('input[name="libraryType"]').forEach((input) => input.addEventListener('change', updateIngredientBasisHint));
 
 document.getElementById('ingredient-log-form').addEventListener('submit', (event) => {
   event.preventDefault();
-  const ingredient = state.recipes.find((item) => item.id === activeIngredientId);
+  const ingredient = [...state.ingredients, ...state.recipes].find((item) => item.id === activeIngredientId);
   if (!ingredient) {
     showToast('找不到这个食材');
     return;
@@ -913,24 +1059,32 @@ document.getElementById('ingredient-log-form').addEventListener('submit', (event
 document.getElementById('recipe-form').addEventListener('submit', (event) => {
   event.preventDefault();
   const values = formValues(event.currentTarget);
+  const basis = values.libraryType === 'ingredient' ? 'per100g' : 'serving';
   const item = {
     id: editingIngredientId || crypto.randomUUID(),
     name: values.name.trim(),
     emoji: values.emoji.trim() || '🍴',
-    basis: values.basis,
+    basis,
     kcal: number(values.kcal),
     protein: number(values.protein),
     carbs: number(values.carbs),
     fat: number(values.fat),
   };
-  const index = state.recipes.findIndex((ingredient) => ingredient.id === editingIngredientId);
-  if (index >= 0) state.recipes[index] = item;
+  // Remove the old copy from both collections first. This also makes changing
+  // the type while editing a real move, instead of leaving a duplicate behind.
+  state.ingredients = state.ingredients.filter((entry) => entry.id !== editingIngredientId);
+  state.recipes = state.recipes.filter((entry) => entry.id !== editingIngredientId);
+  if (basis === 'per100g') state.ingredients.unshift(item);
   else state.recipes.unshift(item);
   saveState();
   event.currentTarget.reset();
   event.currentTarget.closest('dialog').close();
-  renderRecipes();
   const noun = item.basis === 'per100g' ? '食材' : '食谱';
+  libraryFilter = item.basis;
+  librarySearchQuery = '';
+  document.getElementById('library-search').value = '';
+  document.getElementById('library-search-clear').hidden = true;
+  renderRecipes();
   showToast(editingIngredientId ? `${noun}已修改` : `${noun}已保存`);
   editingIngredientId = null;
 });
@@ -964,12 +1118,19 @@ document.getElementById('import-data').addEventListener('change', async (event) 
   if (!file) return;
   try {
     const imported = JSON.parse(await file.text());
-    if (![2, 3, 4, 5, 6].includes(imported.version) || !Array.isArray(imported.foods) || !Array.isArray(imported.weights)) throw new Error('invalid');
+    if (![2, 3, 4, 5, 6, 7].includes(imported.version) || !Array.isArray(imported.foods) || !Array.isArray(imported.weights)) throw new Error('invalid');
     const importedGoals = { ...emptyState().goals, ...(imported.goals || {}) };
+    const importedLibrary = Array.isArray(imported.recipes) ? imported.recipes : [];
+    const importedIngredients = imported.version >= 7 && Array.isArray(imported.ingredients)
+      ? imported.ingredients
+      : importedLibrary.filter((item) => item.basis === 'per100g');
+    const importedRecipes = imported.version >= 7
+      ? importedLibrary
+      : importedLibrary.filter((item) => item.basis !== 'per100g');
     state = {
       ...emptyState(),
       ...imported,
-      version: 6,
+      version: 7,
       goals: importedGoals,
       goalProfiles: {
         training: { ...importedGoals, ...(imported.goalProfiles?.training || {}) },
@@ -980,7 +1141,8 @@ document.getElementById('import-data').addEventListener('change', async (event) 
         ...(imported.trainingCycle || {}),
         overrides: { ...(imported.trainingCycle?.overrides || {}) },
       },
-      recipes: Array.isArray(imported.recipes) ? imported.recipes : [],
+      ingredients: importedIngredients.map((item) => ({ ...item, basis: 'per100g' })),
+      recipes: importedRecipes.map((item) => ({ ...item, basis: 'serving' })),
       burns: Array.isArray(imported.burns) ? imported.burns : [],
       templates: Array.isArray(imported.templates) ? imported.templates : [],
     };
