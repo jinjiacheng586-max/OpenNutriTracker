@@ -1,12 +1,12 @@
-const STORAGE_KEY = 'opennutri-personal-v4';
-const LEGACY_STORAGE_KEYS = ['opennutri-personal-v3', 'opennutri-personal-v2', 'opennutri-web-state-v1'];
+const STORAGE_KEY = 'opennutri-personal-v5';
+const LEGACY_STORAGE_KEYS = ['opennutri-personal-v4', 'opennutri-personal-v3', 'opennutri-personal-v2', 'opennutri-web-state-v1'];
 function localDateKey(date = new Date()) {
   const pad = (value) => String(value).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 const todayISO = () => localDateKey();
 const emptyState = () => ({
-  version: 4,
+  version: 5,
   initialized: false,
   profile: { name: '', birthDate: '', gender: '', height: null, targetWeight: null },
   goals: { kcal: null, carbs: null, protein: null, fat: null },
@@ -19,6 +19,7 @@ const emptyState = () => ({
   foods: [],
   weights: [],
   recipes: [],
+  ingredientsSeeded: false,
   templates: [],
 });
 
@@ -28,12 +29,12 @@ function loadState() {
       || LEGACY_STORAGE_KEYS.map((key) => localStorage.getItem(key)).find(Boolean);
     if (!raw) return emptyState();
     const saved = JSON.parse(raw);
-    if (![2, 3, 4].includes(saved?.version)) return emptyState();
+    if (![2, 3, 4, 5].includes(saved?.version)) return emptyState();
     const legacyGoals = { ...emptyState().goals, ...(saved.goals || {}) };
     const migrated = {
       ...emptyState(),
       ...saved,
-      version: 4,
+      version: 5,
       goals: legacyGoals,
       goalProfiles: {
         training: { ...legacyGoals, ...(saved.goalProfiles?.training || {}) },
@@ -58,13 +59,15 @@ function loadState() {
 
 let state = loadState();
 let selectedMeal = 'breakfast';
+let activeIngredientId = null;
+let editingIngredientId = null;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const mealNames = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐', snack: '零食' };
 const mealIcons = { breakfast: '☀', lunch: '☁', dinner: '☾', snack: '✦' };
 const views = {
   home: ['我的一天', '今天'],
   diary: ['趋势与营养', '最近 7 天'],
-  recipes: ['我的食谱', '常用组合'],
+  recipes: ['常用食材', '按克快速记录'],
   profile: ['我的资料', '档案与设置'],
 };
 const foodDatabase = [
@@ -90,9 +93,34 @@ const foodDatabase = [
   { name: '蛋白粉', emoji: '🥤', kcal: 120, protein: 24, carbs: 3, fat: 2, serving: '1 勺（30 克）' },
 ];
 
+const starterIngredients = [
+  { id: 'starter-chicken-breast', name: '鸡胸肉（熟）', emoji: '🍗', kcal: 165, protein: 31, carbs: 0, fat: 3.6 },
+  { id: 'starter-banana', name: '香蕉', emoji: '🍌', kcal: 89, protein: 1.1, carbs: 22.8, fat: 0.3 },
+  { id: 'starter-skim-milk', name: '脱脂牛奶', emoji: '🥛', kcal: 34, protein: 3.4, carbs: 5, fat: 0.1 },
+  { id: 'starter-raw-rice', name: '生白米', emoji: '🍚', kcal: 365, protein: 7.1, carbs: 80, fat: 0.7 },
+  { id: 'starter-lean-beef', name: '瘦牛肉（熟）', emoji: '🥩', kcal: 200, protein: 26, carbs: 0, fat: 10 },
+  { id: 'starter-egg', name: '鸡蛋', emoji: '🥚', kcal: 143, protein: 12.6, carbs: 0.7, fat: 9.5 },
+  { id: 'starter-oats', name: '燕麦片', emoji: '🥣', kcal: 379, protein: 13.2, carbs: 67.7, fat: 6.5 },
+  { id: 'starter-broccoli', name: '西兰花', emoji: '🥦', kcal: 35, protein: 2.4, carbs: 7.2, fat: 0.4 },
+  { id: 'starter-sweet-potato', name: '熟红薯', emoji: '🍠', kcal: 90, protein: 2, carbs: 20.7, fat: 0.2 },
+  { id: 'starter-salmon', name: '三文鱼（熟）', emoji: '🐟', kcal: 208, protein: 20.4, carbs: 0, fat: 13.4 },
+].map((item) => ({ ...item, basis: 'per100g' }));
+
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
+
+function ensureStarterIngredients() {
+  state.recipes = state.recipes.map((item) => ({ ...item, basis: item.basis || 'serving', emoji: item.emoji || '🍴' }));
+  if (state.ingredientsSeeded) return;
+  const names = new Set(state.recipes.map((item) => String(item.name).trim().toLowerCase()));
+  const starters = starterIngredients.filter((item) => !names.has(item.name.toLowerCase()));
+  state.recipes = [...starters, ...state.recipes];
+  state.ingredientsSeeded = true;
+  saveState();
+}
+
+ensureStarterIngredients();
 
 function number(value) {
   const parsed = Number(value);
@@ -394,23 +422,62 @@ function renderRecipes() {
   const grid = document.getElementById('recipe-grid');
   grid.innerHTML = '';
   document.getElementById('recipe-empty').hidden = state.recipes.length > 0;
-  state.recipes.forEach((recipe) => {
+  state.recipes.forEach((ingredient) => {
+    const per100g = ingredient.basis === 'per100g';
     const card = document.createElement('article');
     card.className = 'recipe-card';
-    card.innerHTML = `<div class="recipe-visual">🥣</div><div><span class="label">我的食谱</span><h3></h3><p>${displayEnergy(recipe.kcal)} · 蛋白质 ${formatNumber(recipe.protein, 1)} 克</p><div class="recipe-actions"><button type="button" class="use-recipe">记录这份</button><button type="button" class="delete-recipe">删除</button></div></div>`;
-    card.querySelector('h3').textContent = recipe.name;
+    card.innerHTML = `<div class="recipe-visual"></div><div><span class="label">${per100g ? '每 100 克' : '固定一份'}</span><h3></h3><p>${displayEnergy(ingredient.kcal)} · 蛋白质 ${formatNumber(ingredient.protein, 1)} 克</p><div class="recipe-actions"><button type="button" class="use-recipe">${per100g ? '输入克数' : '输入份数'}</button><button type="button" class="edit-recipe">修改</button><button type="button" class="delete-recipe">删除</button></div></div>`;
+    card.querySelector('.recipe-visual').textContent = ingredient.emoji || '🍴';
+    card.querySelector('h3').textContent = ingredient.name;
     card.querySelector('.use-recipe').addEventListener('click', () => {
-      selectedMeal = 'breakfast';
-      addFood({ ...recipe, emoji: '🥣' });
-      setView('home');
+      openIngredientLog(ingredient);
+    });
+    card.querySelector('.edit-recipe').addEventListener('click', () => {
+      openIngredientEditor(ingredient);
     });
     card.querySelector('.delete-recipe').addEventListener('click', () => {
-      state.recipes = state.recipes.filter((item) => item.id !== recipe.id);
+      if (!confirm(`删除“${ingredient.name}”吗？`)) return;
+      state.recipes = state.recipes.filter((item) => item.id !== ingredient.id);
       saveState();
       renderRecipes();
+      showToast('食材已删除');
     });
     grid.append(card);
   });
+}
+
+function openIngredientLog(ingredient) {
+  activeIngredientId = ingredient.id;
+  const form = document.getElementById('ingredient-log-form');
+  const per100g = ingredient.basis === 'per100g';
+  document.getElementById('ingredient-log-name').textContent = ingredient.name;
+  document.getElementById('ingredient-amount-label').firstChild.textContent = per100g ? '食用重量（克）' : '食用份数';
+  form.elements.amount.value = per100g ? 100 : 1;
+  form.elements.amount.min = per100g ? '1' : '0.1';
+  form.elements.amount.step = per100g ? '1' : '0.1';
+  form.elements.meal.value = selectedMeal;
+  document.getElementById('ingredient-log-help').textContent = per100g
+    ? `营养数据按每 100 克计算，输入实际食用重量即可。`
+    : '这是从旧版食谱保留的固定份量项目，可输入 0.5、1、2 等份数。';
+  openDialog('ingredient-log-dialog');
+}
+
+function openIngredientEditor(ingredient = null) {
+  editingIngredientId = ingredient?.id || null;
+  const form = document.getElementById('recipe-form');
+  form.reset();
+  document.getElementById('ingredient-editor-title').textContent = ingredient ? '修改食材' : '添加食材';
+  document.getElementById('ingredient-save-button').textContent = ingredient ? '保存修改' : '保存食材';
+  fillForm(form, ingredient || { basis: 'per100g', emoji: '🍴' });
+  updateIngredientBasisHint();
+  openDialog('recipe-dialog');
+}
+
+function updateIngredientBasisHint() {
+  const basis = document.getElementById('ingredient-basis').value;
+  document.getElementById('ingredient-basis-hint').textContent = basis === 'per100g'
+    ? '下面填写每 100 克所含的营养；记录时只需输入吃了多少克。'
+    : '兼容原有固定份量项目；记录时输入吃了几份。';
 }
 
 function renderAll() {
@@ -459,7 +526,8 @@ function addFood(food) {
   });
   saveState();
   renderAll();
-  document.getElementById('add-dialog').close();
+  const addDialog = document.getElementById('add-dialog');
+  if (addDialog.open) addDialog.close();
   showToast(`已添加到${mealNames[selectedMeal]}`);
 }
 
@@ -755,15 +823,53 @@ document.getElementById('weight-form').addEventListener('submit', (event) => {
   showToast('体重已保存');
 });
 
+document.getElementById('ingredient-basis').addEventListener('change', updateIngredientBasisHint);
+
+document.getElementById('ingredient-log-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const ingredient = state.recipes.find((item) => item.id === activeIngredientId);
+  if (!ingredient) {
+    showToast('找不到这个食材');
+    return;
+  }
+  const values = formValues(event.currentTarget);
+  const amount = number(values.amount);
+  const factor = ingredient.basis === 'per100g' ? amount / 100 : amount;
+  selectedMeal = values.meal;
+  addFood({
+    name: `${ingredient.name}（${formatNumber(amount, 1)}${ingredient.basis === 'per100g' ? '克' : '份'}）`,
+    emoji: ingredient.emoji,
+    kcal: number(ingredient.kcal) * factor,
+    protein: number(ingredient.protein) * factor,
+    carbs: number(ingredient.carbs) * factor,
+    fat: number(ingredient.fat) * factor,
+  });
+  event.currentTarget.closest('dialog').close();
+  setView('home');
+});
+
 document.getElementById('recipe-form').addEventListener('submit', (event) => {
   event.preventDefault();
   const values = formValues(event.currentTarget);
-  state.recipes.push({ id: crypto.randomUUID(), name: values.name.trim(), kcal: number(values.kcal), protein: number(values.protein), carbs: number(values.carbs), fat: number(values.fat) });
+  const item = {
+    id: editingIngredientId || crypto.randomUUID(),
+    name: values.name.trim(),
+    emoji: values.emoji.trim() || '🍴',
+    basis: values.basis,
+    kcal: number(values.kcal),
+    protein: number(values.protein),
+    carbs: number(values.carbs),
+    fat: number(values.fat),
+  };
+  const index = state.recipes.findIndex((ingredient) => ingredient.id === editingIngredientId);
+  if (index >= 0) state.recipes[index] = item;
+  else state.recipes.unshift(item);
   saveState();
   event.currentTarget.reset();
   event.currentTarget.closest('dialog').close();
   renderRecipes();
-  showToast('食谱已保存');
+  showToast(editingIngredientId ? '食材已修改' : '食材已保存');
+  editingIngredientId = null;
 });
 
 document.querySelectorAll('[data-action]').forEach((button) => button.addEventListener('click', () => {
@@ -773,7 +879,7 @@ document.querySelectorAll('[data-action]').forEach((button) => button.addEventLi
   if (action === 'appearance') openAppearance();
   if (action === 'weight') { setView('diary'); openWeight(); }
   if (action === 'weight-view') setView('diary');
-  if (action === 'recipe') openDialog('recipe-dialog');
+  if (action === 'recipe') openIngredientEditor();
   if (action === 'data') openDialog('data-dialog');
   if (action === 'privacy') openDialog('privacy-dialog');
 }));
@@ -793,12 +899,12 @@ document.getElementById('import-data').addEventListener('change', async (event) 
   if (!file) return;
   try {
     const imported = JSON.parse(await file.text());
-    if (![2, 3, 4].includes(imported.version) || !Array.isArray(imported.foods) || !Array.isArray(imported.weights)) throw new Error('invalid');
+    if (![2, 3, 4, 5].includes(imported.version) || !Array.isArray(imported.foods) || !Array.isArray(imported.weights)) throw new Error('invalid');
     const importedGoals = { ...emptyState().goals, ...(imported.goals || {}) };
     state = {
       ...emptyState(),
       ...imported,
-      version: 4,
+      version: 5,
       goals: importedGoals,
       goalProfiles: {
         training: { ...importedGoals, ...(imported.goalProfiles?.training || {}) },
@@ -812,6 +918,7 @@ document.getElementById('import-data').addEventListener('change', async (event) 
       recipes: Array.isArray(imported.recipes) ? imported.recipes : [],
       templates: Array.isArray(imported.templates) ? imported.templates : [],
     };
+    ensureStarterIngredients();
     saveState();
     document.getElementById('data-dialog').close();
     renderAll();
@@ -824,7 +931,7 @@ document.getElementById('import-data').addEventListener('change', async (event) 
 });
 
 document.getElementById('reset-data').addEventListener('click', () => {
-  if (!confirm('确定清空这台设备上的个人档案、餐食、体重和食谱吗？此操作无法撤销。')) return;
+  if (!confirm('确定清空这台设备上的个人档案、餐食、体重和常用食材吗？此操作无法撤销。')) return;
   localStorage.removeItem(STORAGE_KEY);
   LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
   location.reload();

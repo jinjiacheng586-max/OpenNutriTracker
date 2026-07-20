@@ -12,7 +12,7 @@
 </p>
 
 ## Description
-OpenNutriTracker is a local-first web app for manually tracking calories, macros, meals, recipes, and weight. The active web product lives in [`docs/site`](docs/site), works responsively on desktop and mobile, and can be installed as a PWA. It does not connect to Apple Health or Apple Watch.
+OpenNutriTracker is a local-first web app for manually tracking calories, macros, meals, reusable ingredients, and weight. The active web product lives in [`docs/site`](docs/site), works responsively on desktop and mobile, and can be installed as a PWA. It does not connect to Apple Health or Apple Watch.
 
 ## Screenshots
 <p align="center">
@@ -40,9 +40,10 @@ Then open `http://localhost:8080`. The GitHub Pages workflow deploys the same di
 - **🍎 Manual nutrition tracking:** Enter a name and calories, with optional protein, carbohydrates, and fat, and assign it to breakfast, lunch, dinner, or snacks.
 - **🏋️ Training/rest targets:** Keep separate calorie and macro targets for training days and rest days, automatically rotate through a three-on/one-off schedule, and override today's type when plans change.
 - **⚡ Fast logging:** Re-add deduplicated recent items, create reusable quick templates, or choose an item from the food search without retyping nutrition values.
+- **🥕 Ingredient shortcuts:** Keep an editable library of staple foods with nutrition per 100 g, then enter the eaten weight and meal to calculate a diary entry automatically.
 - **🔎 Food search:** Includes an offline starter list and searches the Open Food Facts catalogue for packaged-food matches when online.
 - **📓 Food diary:** See today's meals and a seven-day calorie trend, with delete controls for individual entries.
-- **🍽️ Recipes:** Save reusable meal combinations and log them again with one click.
+- **🍽️ Reusable ingredients:** Add or edit staple foods with nutrition per 100 g, then log any weight to the correct meal.
 - **⚖️ Weight history:** Record weight by date and review the trend and history.
 - **🎨 Appearance:** Follow the system appearance or choose light or dark mode.
 - **🔢 kcal or kJ:** Switch the energy unit globally; every diary entry, target, and chart reflects the choice.
@@ -52,7 +53,7 @@ Then open `http://localhost:8080`. The GitHub Pages workflow deploys the same di
 
 ## Privacy
 See [Data Protection](https://www.iubenda.com/privacy-policy/53501884)
-- **Browser-local storage**: Nutrition, recipe, template, and weight records remain in the current browser unless you explicitly export them.
+- **Browser-local storage**: Nutrition, ingredient, template, and weight records remain in the current browser unless you explicitly export them.
 - **Backups recommended**: Clearing browser site data can remove local records, so the app provides JSON export and import.
 - **Open-Source**: OpenNutriTracker is an open-source application
 
