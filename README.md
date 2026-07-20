@@ -41,6 +41,9 @@ Then open `http://localhost:8080`. The GitHub Pages workflow deploys the same di
 - **🏋️ Training/rest targets:** Keep separate calorie and macro targets for training days and rest days, automatically rotate through a three-on/one-off schedule, and override today's type when plans change.
 - **⚡ Fast logging:** Re-add deduplicated recent items, create reusable quick templates, or choose an item from the food search without retyping nutrition values.
 - **🥕 Ingredient shortcuts:** Keep an editable library of staple foods with nutrition per 100 g, then enter the eaten weight and meal to calculate a diary entry automatically.
+- **🍲 Reusable recipes:** Save frequently cooked dishes as editable fixed servings and log one or more portions to any meal.
+- **⌚ Manual energy balance:** Enter total daily calories burned from a watch and track daily surplus or deficit as intake minus expenditure.
+- **📉 Date-aware weight trend:** Plot weigh-ins according to their actual dates without inventing measurements for skipped rest days.
 - **🔎 Food search:** Includes an offline starter list and searches the Open Food Facts catalogue for packaged-food matches when online.
 - **📓 Food diary:** See today's meals and a seven-day calorie trend, with delete controls for individual entries.
 - **🍽️ Reusable ingredients:** Add or edit staple foods with nutrition per 100 g, then log any weight to the correct meal.
