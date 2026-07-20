@@ -1,7 +1,7 @@
 {
   "name": "OpenNutriTracker",
   "short_name": "OpenNutri",
-  "description": "手动记录餐食、营养、常用食材、快捷模板与体重目标。",
+  "description": "手动记录餐食、常用食材、食谱、热量收支与体重趋势。",
   "lang": "zh-CN",
   "start_url": "./#home",
   "scope": "./",
