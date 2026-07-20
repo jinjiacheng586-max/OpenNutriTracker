@@ -1,15 +1,20 @@
-const STORAGE_KEY = 'opennutri-personal-v3';
-const LEGACY_STORAGE_KEYS = ['opennutri-personal-v2', 'opennutri-web-state-v1'];
+const STORAGE_KEY = 'opennutri-personal-v4';
+const LEGACY_STORAGE_KEYS = ['opennutri-personal-v3', 'opennutri-personal-v2', 'opennutri-web-state-v1'];
 function localDateKey(date = new Date()) {
   const pad = (value) => String(value).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 const todayISO = () => localDateKey();
 const emptyState = () => ({
-  version: 3,
+  version: 4,
   initialized: false,
   profile: { name: '', birthDate: '', gender: '', height: null, targetWeight: null },
   goals: { kcal: null, carbs: null, protein: null, fat: null },
+  goalProfiles: {
+    training: { kcal: null, carbs: null, protein: null, fat: null },
+    rest: { kcal: null, carbs: null, protein: null, fat: null },
+  },
+  trainingCycle: { anchorDate: todayISO(), anchorIndex: 0, overrides: {} },
   settings: { theme: 'system', energyUnit: 'kcal', measurement: 'metric' },
   foods: [],
   weights: [],
@@ -23,11 +28,22 @@ function loadState() {
       || LEGACY_STORAGE_KEYS.map((key) => localStorage.getItem(key)).find(Boolean);
     if (!raw) return emptyState();
     const saved = JSON.parse(raw);
-    if (![2, 3].includes(saved?.version)) return emptyState();
+    if (![2, 3, 4].includes(saved?.version)) return emptyState();
+    const legacyGoals = { ...emptyState().goals, ...(saved.goals || {}) };
     const migrated = {
       ...emptyState(),
       ...saved,
-      version: 3,
+      version: 4,
+      goals: legacyGoals,
+      goalProfiles: {
+        training: { ...legacyGoals, ...(saved.goalProfiles?.training || {}) },
+        rest: { ...legacyGoals, ...(saved.goalProfiles?.rest || {}) },
+      },
+      trainingCycle: {
+        ...emptyState().trainingCycle,
+        ...(saved.trainingCycle || {}),
+        overrides: { ...(saved.trainingCycle?.overrides || {}) },
+      },
       foods: Array.isArray(saved.foods) ? saved.foods : [],
       weights: Array.isArray(saved.weights) ? saved.weights : [],
       recipes: Array.isArray(saved.recipes) ? saved.recipes : [],
@@ -42,6 +58,7 @@ function loadState() {
 
 let state = loadState();
 let selectedMeal = 'breakfast';
+const DAY_MS = 24 * 60 * 60 * 1000;
 const mealNames = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐', snack: '零食' };
 const mealIcons = { breakfast: '☀', lunch: '☁', dinner: '☾', snack: '✦' };
 const views = {
@@ -80,6 +97,29 @@ function saveState() {
 function number(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function dateSerial(dateKey) {
+  const [year, month, day] = dateKey.split('-').map(Number);
+  return Math.floor(Date.UTC(year, month - 1, day) / DAY_MS);
+}
+
+function cycleIndexForDate(date = todayISO()) {
+  const anchorDate = state.trainingCycle?.anchorDate || todayISO();
+  const anchorIndex = number(state.trainingCycle?.anchorIndex);
+  const offset = dateSerial(date) - dateSerial(anchorDate);
+  return ((anchorIndex + offset) % 4 + 4) % 4;
+}
+
+function dayTypeForDate(date = todayISO()) {
+  const override = state.trainingCycle?.overrides?.[date];
+  if (override === 'training' || override === 'rest') return override;
+  return cycleIndexForDate(date) === 3 ? 'rest' : 'training';
+}
+
+function goalsForDate(date = todayISO()) {
+  const type = dayTypeForDate(date);
+  return state.goalProfiles?.[type] || state.goals;
 }
 
 function formatNumber(value, digits = 0) {
@@ -155,11 +195,17 @@ function renderHeaderDate() {
   const now = new Date();
   document.getElementById('today-weekday').textContent = new Intl.DateTimeFormat('zh-CN', { weekday: 'long' }).format(now);
   document.getElementById('today-date').textContent = new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' }).format(now);
+  const dayType = dayTypeForDate();
+  const dayTypeButton = document.getElementById('day-type-toggle');
+  dayTypeButton.textContent = dayType === 'training' ? '🏋️ 训练日' : '🌿 休息日';
+  dayTypeButton.classList.toggle('rest', dayType === 'rest');
+  dayTypeButton.setAttribute('aria-label', `今天是${dayType === 'training' ? '训练日' : '休息日'}，点击临时切换`);
 }
 
 function renderDashboard() {
   const totals = totalsForDate(todayISO());
-  const goal = number(state.goals.kcal);
+  const activeGoals = goalsForDate();
+  const goal = number(activeGoals.kcal);
   const remaining = Math.max(0, goal - totals.kcal);
   const percent = goal ? Math.min(100, Math.round(totals.kcal / goal * 100)) : 0;
   document.getElementById('remaining-energy').textContent = goal ? displayEnergy(remaining, false) : '—';
@@ -174,7 +220,7 @@ function renderDashboard() {
     ['fat', '脂肪', 'F', '#8069c7'],
   ];
   document.getElementById('macro-list').innerHTML = macroData.map(([key, label, letter, color]) => {
-    const macroGoal = number(state.goals[key]);
+    const macroGoal = number(activeGoals[key]);
     const value = totals[key];
     const macroPercent = macroGoal ? Math.min(100, Math.round(value / macroGoal * 100)) : 0;
     return `<div class="macro-row"><div class="macro-label"><span class="macro-icon" style="--macro-color:${color}">${letter}</span><span>${label}<small>${formatNumber(value, 1)} / ${macroGoal ? formatNumber(macroGoal) : '—'} 克</small></span><strong>${macroGoal ? `${macroPercent}%` : '—'}</strong></div><div class="progress"><i style="width:${macroPercent}%;background:${color}"></i></div></div>`;
@@ -241,7 +287,7 @@ function renderWeek() {
     const iso = localDateKey(date);
     return { date, iso, kcal: totalsForDate(iso).kcal };
   });
-  const max = Math.max(number(state.goals.kcal), ...days.map((day) => day.kcal), 1);
+  const max = Math.max(...Object.values(state.goalProfiles).map((goals) => number(goals.kcal)), ...days.map((day) => day.kcal), 1);
   const recorded = days.filter((day) => day.kcal > 0);
   const average = recorded.length ? recorded.reduce((sum, day) => sum + day.kcal, 0) / recorded.length : 0;
   document.getElementById('week-average').textContent = recorded.length ? `平均 ${displayEnergy(average)}` : '暂无记录';
@@ -250,10 +296,11 @@ function renderWeek() {
 
 function renderNutrients() {
   const totals = totalsForDate(todayISO());
+  const activeGoals = goalsForDate();
   const nutrients = [
-    ['蛋白质', totals.protein, state.goals.protein, '克', 'P'],
-    ['碳水化合物', totals.carbs, state.goals.carbs, '克', 'C'],
-    ['脂肪', totals.fat, state.goals.fat, '克', 'F'],
+    ['蛋白质', totals.protein, activeGoals.protein, '克', 'P'],
+    ['碳水化合物', totals.carbs, activeGoals.carbs, '克', 'C'],
+    ['脂肪', totals.fat, activeGoals.fat, '克', 'F'],
     ['已记录食物', state.foods.filter((food) => food.date === todayISO()).length, null, '项', '✓'],
   ];
   document.getElementById('nutrient-grid').innerHTML = nutrients.map(([name, value, goal, unit, icon]) => {
@@ -334,7 +381,11 @@ function renderProfile() {
   const target = number(state.profile.targetWeight);
   document.getElementById('goal-title').textContent = target ? `目标 ${displayWeight(target)}` : '尚未设置';
   document.getElementById('goal-description').textContent = target && latestWeight ? `距离目标 ${displayWeight(Math.abs(latestWeight - target))}` : '编辑个人档案，填写你的目标体重';
-  document.getElementById('goal-setting-summary').textContent = state.goals.kcal ? `${displayEnergy(state.goals.kcal)} · 蛋白质 ${formatNumber(state.goals.protein)} 克` : '设置热量和三大营养素';
+  const trainingGoals = state.goalProfiles.training;
+  const restGoals = state.goalProfiles.rest;
+  document.getElementById('goal-setting-summary').textContent = trainingGoals.kcal
+    ? `训练 ${displayEnergy(trainingGoals.kcal)} · 休息 ${displayEnergy(restGoals.kcal)}`
+    : '分别设置训练日和休息日目标';
   const themeNames = { system: '跟随系统', light: '浅色', dark: '深色' };
   document.getElementById('appearance-summary').textContent = `${themeNames[state.settings.theme]} · ${state.settings.energyUnit === 'kj' ? '千焦' : '千卡'} · ${state.settings.measurement === 'imperial' ? '英制' : '公制'}`;
 }
@@ -595,13 +646,16 @@ document.getElementById('setup-form').addEventListener('submit', (event) => {
   event.preventDefault();
   const values = formValues(event.currentTarget);
   state.profile = { name: values.name.trim(), birthDate: values.birthDate, gender: values.gender, height: number(values.height) || null, targetWeight: number(values.targetWeight) || null };
-  state.goals = { kcal: number(values.kcalGoal) || null, carbs: null, protein: null, fat: null };
+  const initialGoals = { kcal: number(values.kcalGoal) || null, carbs: null, protein: null, fat: null };
+  state.goals = initialGoals;
+  state.goalProfiles = { training: { ...initialGoals }, rest: { ...initialGoals } };
+  state.trainingCycle = { anchorDate: todayISO(), anchorIndex: 0, overrides: {} };
   if (values.weight) state.weights.push({ id: crypto.randomUUID(), date: todayISO(), weight: number(values.weight) });
   state.initialized = true;
   saveState();
   document.getElementById('setup-dialog').close();
   renderAll();
-  if (!state.goals.carbs) openGoals();
+  if (!state.goalProfiles.training.carbs) openGoals();
 });
 
 function fillForm(form, values) {
@@ -626,18 +680,43 @@ document.getElementById('profile-form').addEventListener('submit', (event) => {
 });
 
 function openGoals() {
-  fillForm(document.getElementById('goals-form'), state.goals);
+  const form = document.getElementById('goals-form');
+  fillForm(form, {
+    trainingKcal: state.goalProfiles.training.kcal,
+    trainingCarbs: state.goalProfiles.training.carbs,
+    trainingProtein: state.goalProfiles.training.protein,
+    trainingFat: state.goalProfiles.training.fat,
+    restKcal: state.goalProfiles.rest.kcal,
+    restCarbs: state.goalProfiles.rest.carbs,
+    restProtein: state.goalProfiles.rest.protein,
+    restFat: state.goalProfiles.rest.fat,
+    cycleDay: cycleIndexForDate(),
+  });
   openDialog('goals-dialog');
 }
 
 document.getElementById('goals-form').addEventListener('submit', (event) => {
   event.preventDefault();
   const values = formValues(event.currentTarget);
-  state.goals = { kcal: number(values.kcal), carbs: number(values.carbs), protein: number(values.protein), fat: number(values.fat) };
+  state.goalProfiles = {
+    training: { kcal: number(values.trainingKcal), carbs: number(values.trainingCarbs), protein: number(values.trainingProtein), fat: number(values.trainingFat) },
+    rest: { kcal: number(values.restKcal), carbs: number(values.restCarbs), protein: number(values.restProtein), fat: number(values.restFat) },
+  };
+  state.goals = { ...state.goalProfiles.training };
+  state.trainingCycle = { anchorDate: todayISO(), anchorIndex: number(values.cycleDay), overrides: {} };
   saveState();
   event.currentTarget.closest('dialog').close();
   renderAll();
-  showToast('每日目标已保存');
+  showToast('训练日与休息日目标已保存');
+});
+
+document.getElementById('day-type-toggle').addEventListener('click', () => {
+  const date = todayISO();
+  const nextType = dayTypeForDate(date) === 'training' ? 'rest' : 'training';
+  state.trainingCycle.overrides[date] = nextType;
+  saveState();
+  renderAll();
+  showToast(`今天已切换为${nextType === 'training' ? '训练日' : '休息日'}`);
 });
 
 function openAppearance() {
@@ -714,11 +793,22 @@ document.getElementById('import-data').addEventListener('change', async (event) 
   if (!file) return;
   try {
     const imported = JSON.parse(await file.text());
-    if (![2, 3].includes(imported.version) || !Array.isArray(imported.foods) || !Array.isArray(imported.weights)) throw new Error('invalid');
+    if (![2, 3, 4].includes(imported.version) || !Array.isArray(imported.foods) || !Array.isArray(imported.weights)) throw new Error('invalid');
+    const importedGoals = { ...emptyState().goals, ...(imported.goals || {}) };
     state = {
       ...emptyState(),
       ...imported,
-      version: 3,
+      version: 4,
+      goals: importedGoals,
+      goalProfiles: {
+        training: { ...importedGoals, ...(imported.goalProfiles?.training || {}) },
+        rest: { ...importedGoals, ...(imported.goalProfiles?.rest || {}) },
+      },
+      trainingCycle: {
+        ...emptyState().trainingCycle,
+        ...(imported.trainingCycle || {}),
+        overrides: { ...(imported.trainingCycle?.overrides || {}) },
+      },
       recipes: Array.isArray(imported.recipes) ? imported.recipes : [],
       templates: Array.isArray(imported.templates) ? imported.templates : [],
     };
