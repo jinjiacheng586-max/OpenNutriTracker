@@ -63,11 +63,20 @@
 
       <section class="view" id="view-diary">
         <article class="card trend-card">
-          <div class="card-heading balance-heading"><div><span class="label">摄入 − 消耗</span><h2>最近 7 天热量收支</h2></div><div><strong id="week-average">暂无记录</strong><button class="primary-button small" data-action="burn">＋ 记录消耗</button></div></div>
-          <div class="week-bars" id="week-bars"></div>
+          <div class="energy-analysis-header"><div><span class="label">摄入、消耗与收支</span><h2>热量趋势分析</h2><strong id="energy-period-label">最近 30 天 · 按周</strong></div><button class="primary-button small" data-action="burn">＋ 记录消耗</button></div>
+          <div class="range-tabs energy-range-tabs" aria-label="热量分析范围"><button type="button" data-energy-range="7">7 天</button><button type="button" class="active" data-energy-range="30">30 天</button><button type="button" data-energy-range="90">90 天</button><button type="button" data-energy-range="all">全部</button></div>
+          <div class="energy-summary" id="energy-summary"></div>
+          <div class="energy-chart-heading"><strong id="energy-chart-title">每周平均收支</strong><small>柱线以上为盈余，以下为缺口</small></div>
+          <div class="week-bars energy-bars" id="week-bars"></div>
           <div class="balance-legend"><span><i class="deficit"></i>热量缺口</span><span><i class="surplus"></i>热量盈余</span></div>
+          <div class="energy-insight" id="energy-insight" hidden></div>
+          <div class="energy-detail-heading"><strong>最近记录</strong><small id="energy-history-count"></small></div>
           <div class="balance-history" id="balance-history"></div>
         </article>
+        <div class="energy-period-grid">
+          <article class="card energy-period-card"><div class="card-heading"><div><span class="period-icon">▥</span><span><span class="label">按自然周汇总</span><h2>每周平均</h2></span></div><small>最近 8 周</small></div><div class="energy-period-list" id="weekly-energy-list"></div></article>
+          <article class="card energy-period-card"><div class="card-heading"><div><span class="period-icon">▦</span><span><span class="label">按自然月汇总</span><h2>每月平均</h2></span></div><small>最近 6 个月</small></div><div class="energy-period-list" id="monthly-energy-list"></div></article>
+        </div>
         <div class="section-heading"><div><span class="label">身体变化</span><h2>体重趋势</h2></div><button class="primary-button small" data-action="weight">＋ 记录体重</button></div>
         <article class="card weight-card">
           <div class="weight-card-header"><div><span class="label">趋势分析</span><strong id="weight-period-label">全部记录</strong></div><div class="range-tabs" aria-label="体重图表范围"><button type="button" data-weight-range="30">30 天</button><button type="button" data-weight-range="90">90 天</button><button type="button" class="active" data-weight-range="all">全部</button></div></div>

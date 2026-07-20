@@ -78,13 +78,14 @@ let editingIngredientId = null;
 let editingTemplateId = null;
 let libraryFilter = 'per100g';
 let librarySearchQuery = '';
+let energyRange = '30';
 let weightRange = 'all';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const mealNames = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐', snack: '零食' };
 const mealIcons = { breakfast: '☀', lunch: '☁', dinner: '☾', snack: '✦' };
 const views = {
   home: ['我的一天', '今天'],
-  diary: ['趋势与营养', '最近 7 天'],
+  diary: ['趋势与营养', '周期分析'],
   recipes: ['快捷记录库', '食材与食谱'],
   profile: ['我的资料', '档案与设置'],
 };
@@ -326,36 +327,179 @@ function renderMeals() {
   });
 }
 
-function renderWeek() {
-  const container = document.getElementById('week-bars');
-  const days = Array.from({ length: 7 }, (_, index) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (6 - index));
-    const iso = localDateKey(date);
-    const intake = totalsForDate(iso).kcal;
-    const burnRecord = state.burns.find((item) => item.date === iso);
-    const burn = burnRecord ? number(burnRecord.kcal) : null;
-    return { date, iso, intake, burn, balance: burn == null ? null : intake - burn };
+function dateKeyFromSerial(serial) {
+  const date = new Date(serial * DAY_MS);
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`;
+}
+
+function energyDay(iso) {
+  const hasFood = state.foods.some((food) => food.date === iso);
+  const burnRecord = state.burns.find((item) => item.date === iso);
+  const hasBurn = Boolean(burnRecord);
+  const intake = totalsForDate(iso).kcal;
+  const burn = hasBurn ? number(burnRecord.kcal) : null;
+  return {
+    iso,
+    intake,
+    burn,
+    hasFood,
+    hasBurn,
+    recorded: hasFood || hasBurn,
+    complete: hasFood && hasBurn,
+    balance: hasFood && hasBurn ? intake - burn : null,
+    goal: number(goalsForDate(iso).kcal) || null,
+  };
+}
+
+function energyDaysBetween(startSerial, endSerial) {
+  return Array.from(
+    { length: Math.max(0, endSerial - startSerial + 1) },
+    (_, index) => energyDay(dateKeyFromSerial(startSerial + index)),
+  );
+}
+
+function aggregateEnergyDays(days, key, label) {
+  const intakeDays = days.filter((day) => day.hasFood);
+  const burnDays = days.filter((day) => day.hasBurn);
+  const completeDays = days.filter((day) => day.complete);
+  return {
+    key,
+    label,
+    days,
+    recordedCount: days.filter((day) => day.recorded).length,
+    completeCount: completeDays.length,
+    intake: average(intakeDays.map((day) => day.intake)),
+    burn: average(burnDays.map((day) => day.burn)),
+    balance: average(completeDays.map((day) => day.balance)),
+  };
+}
+
+function groupEnergyDays(days, mode) {
+  const groups = new Map();
+  days.forEach((day) => {
+    const serial = dateSerial(day.iso);
+    let key = day.iso;
+    let label = day.iso.slice(5);
+    if (mode === 'week') {
+      const weekday = new Date(serial * DAY_MS).getUTCDay();
+      key = dateKeyFromSerial(serial - ((weekday + 6) % 7));
+      label = key.slice(5);
+    } else if (mode === 'month') {
+      key = day.iso.slice(0, 7);
+      label = `${number(key.slice(5))}月`;
+    } else {
+      const weekday = new Intl.DateTimeFormat('zh-CN', { weekday: 'short', timeZone: 'UTC' })
+        .format(new Date(serial * DAY_MS))
+        .replace('周', '');
+      label = weekday;
+    }
+    if (!groups.has(key)) groups.set(key, { label, days: [] });
+    groups.get(key).days.push(day);
   });
-  const recorded = days.filter((day) => day.balance != null);
-  const maxAbs = Math.max(...recorded.map((day) => Math.abs(day.balance)), 1);
-  const totalBalance = recorded.reduce((sum, day) => sum + day.balance, 0);
-  document.getElementById('week-average').textContent = recorded.length
-    ? `7 天合计 ${totalBalance > 0 ? '盈余 ' : totalBalance < 0 ? '缺口 ' : '平衡 '}${displayEnergy(Math.abs(totalBalance))}`
-    : '等待消耗记录';
-  container.innerHTML = days.map((day, index) => {
-    const weekday = new Intl.DateTimeFormat('zh-CN', { weekday: 'short' }).format(day.date).replace('周', '');
-    if (day.balance == null) return `<div class="${index === 6 ? 'today' : ''}"><span class="bar-value">—</span><span class="balance-track"><i class="missing"></i></span><span>${weekday}</span></div>`;
-    const height = Math.max(4, Math.abs(day.balance) / maxAbs * 45);
-    const direction = day.balance > 0 ? 'surplus' : day.balance < 0 ? 'deficit' : 'balanced';
-    return `<div class="${index === 6 ? 'today' : ''}" title="摄入 ${formatNumber(day.intake)} · 消耗 ${formatNumber(day.burn)}"><span class="bar-value">${day.balance > 0 ? '+' : day.balance < 0 ? '−' : ''}${formatNumber(Math.abs(day.balance))}</span><span class="balance-track"><i class="${direction}" style="height:${height}%;${day.balance > 0 ? 'bottom:50%' : 'top:50%'}"></i></span><span>${weekday}</span></div>`;
-  }).join('');
-  document.getElementById('balance-history').innerHTML = [...days].reverse().map((day) => {
-    const result = day.balance == null
-      ? '<strong class="missing-balance">未记录消耗</strong>'
-      : `<strong class="${day.balance > 0 ? 'surplus-text' : 'deficit-text'}">${day.balance > 0 ? '盈余' : day.balance < 0 ? '缺口' : '平衡'} ${displayEnergy(Math.abs(day.balance))}</strong>`;
-    return `<div><span>${day.iso.slice(5)}</span><small>摄入 ${displayEnergy(day.intake)} · 消耗 ${day.burn == null ? '—' : displayEnergy(day.burn)}</small>${result}</div>`;
-  }).join('');
+  return [...groups].map(([key, group]) => aggregateEnergyDays(group.days, key, group.label));
+}
+
+function balanceDescription(value) {
+  if (value == null) return '数据不足';
+  if (Math.abs(value) < 1) return '基本平衡';
+  return `${value > 0 ? '盈余' : '缺口'} ${displayEnergy(Math.abs(value))}`;
+}
+
+function energyPeriodRow(period, type) {
+  const label = type === 'month'
+    ? `${period.key.slice(0, 4)}年${number(period.key.slice(5))}月`
+    : `${period.key.slice(5)} 起`;
+  const balanceClass = period.balance == null ? 'missing-balance' : period.balance > 0 ? 'surplus-text' : 'deficit-text';
+  return `<div class="energy-period-row"><span class="period-date">${label}</span><span><small>平均摄入</small><strong>${period.intake == null ? '—' : displayEnergy(period.intake)}</strong></span><span><small>平均消耗</small><strong>${period.burn == null ? '—' : displayEnergy(period.burn)}</strong></span><span class="period-balance"><small>${period.completeCount} 天完整</small><strong class="${balanceClass}">${balanceDescription(period.balance)}</strong></span></div>`;
+}
+
+function renderEnergyPeriodLists(allDays) {
+  const weekly = groupEnergyDays(allDays, 'week').filter((period) => period.recordedCount).slice(-8).reverse();
+  const monthly = groupEnergyDays(allDays, 'month').filter((period) => period.recordedCount).slice(-6).reverse();
+  document.getElementById('weekly-energy-list').innerHTML = weekly.length
+    ? weekly.map((period) => energyPeriodRow(period, 'week')).join('')
+    : '<p class="inline-empty">还没有足够的每周记录。</p>';
+  document.getElementById('monthly-energy-list').innerHTML = monthly.length
+    ? monthly.map((period) => energyPeriodRow(period, 'month')).join('')
+    : '<p class="inline-empty">记录一段时间后，这里会显示每月平均。</p>';
+}
+
+function renderWeek() {
+  const todaySerial = dateSerial(todayISO());
+  const recordedDates = [...state.foods.map((food) => food.date), ...state.burns.map((burn) => burn.date)]
+    .filter(Boolean)
+    .sort();
+  const earliestSerial = recordedDates.length ? Math.min(todaySerial, dateSerial(recordedDates[0])) : todaySerial - 29;
+  const rangeLength = energyRange === 'all' ? null : number(energyRange);
+  const startSerial = rangeLength == null ? earliestSerial : todaySerial - rangeLength + 1;
+  const days = energyDaysBetween(startSerial, todaySerial);
+  const allDays = energyDaysBetween(earliestSerial, todaySerial);
+  const recordedDays = days.filter((day) => day.recorded);
+  const intakeDays = days.filter((day) => day.hasFood);
+  const burnDays = days.filter((day) => day.hasBurn);
+  const completeDays = days.filter((day) => day.complete);
+  const averageIntake = average(intakeDays.map((day) => day.intake));
+  const averageBurn = average(burnDays.map((day) => day.burn));
+  const averageBalance = average(completeDays.map((day) => day.balance));
+  const mode = energyRange === '7' ? 'day' : energyRange === 'all' ? 'month' : 'week';
+  const periodName = energyRange === 'all' ? '全部记录' : `最近 ${energyRange} 天`;
+  const modeName = mode === 'day' ? '按日' : mode === 'week' ? '按周' : '按月';
+
+  document.querySelectorAll('[data-energy-range]').forEach((button) => button.classList.toggle('active', button.dataset.energyRange === energyRange));
+  document.getElementById('energy-period-label').textContent = `${periodName} · ${modeName}`;
+  document.getElementById('energy-chart-title').textContent = `${modeName}平均热量收支`;
+  document.getElementById('energy-summary').innerHTML = [
+    ['🍽', '平均摄入', averageIntake == null ? '—' : displayEnergy(averageIntake)],
+    ['🔥', '平均消耗', averageBurn == null ? '—' : displayEnergy(averageBurn)],
+    ['⚖', '平均收支', balanceDescription(averageBalance)],
+    ['✓', '完整记录', `${completeDays.length} / ${days.length} 天`],
+  ].map(([icon, label, value]) => `<div><span>${icon}</span><p><small>${label}</small><strong>${value}</strong></p></div>`).join('');
+
+  const chartGroups = groupEnergyDays(days, mode).slice(-14);
+  const balancedGroups = chartGroups.filter((group) => group.balance != null);
+  const maxAbs = Math.max(...balancedGroups.map((group) => Math.abs(group.balance)), 1);
+  const container = document.getElementById('week-bars');
+  if (!balancedGroups.length) {
+    container.innerHTML = '<div class="energy-chart-empty"><span>⌁</span><strong>还不能计算热量收支</strong><small>同一天同时记录饮食和消耗后，这里才会比较盈余或缺口。</small></div>';
+  } else {
+    container.innerHTML = chartGroups.map((group) => {
+      if (group.balance == null) return `<div><span class="bar-value">—</span><span class="balance-track"><i class="missing"></i></span><span>${group.label}</span></div>`;
+      const height = Math.max(4, Math.abs(group.balance) / maxAbs * 45);
+      const direction = group.balance > 0 ? 'surplus' : group.balance < 0 ? 'deficit' : 'balanced';
+      return `<div title="平均摄入 ${group.intake == null ? '—' : formatNumber(group.intake)} · 平均消耗 ${group.burn == null ? '—' : formatNumber(group.burn)}"><span class="bar-value">${group.balance > 0 ? '+' : group.balance < 0 ? '−' : ''}${formatNumber(Math.abs(group.balance))}</span><span class="balance-track"><i class="${direction}" style="height:${height}%;${group.balance > 0 ? 'bottom:50%' : 'top:50%'}"></i></span><span>${group.label}</span></div>`;
+    }).join('');
+  }
+
+  const insight = document.getElementById('energy-insight');
+  if (!recordedDays.length) {
+    insight.innerHTML = '<span>◎</span><div><strong>还没有这个区间的热量记录</strong><small>记录饮食后可看到平均摄入；同时记录每日消耗后，才能得到完整的盈余或缺口总结。</small></div>';
+  } else if (!completeDays.length) {
+    insight.innerHTML = `<span>🔥</span><div><strong>已有 ${intakeDays.length} 天饮食记录，但缺少可比较的消耗</strong><small>热量收支只使用饮食和消耗都完整的日期，避免把漏记误判成巨大缺口。</small></div>`;
+  } else {
+    const deficits = completeDays.filter((day) => day.balance < 0).length;
+    const surpluses = completeDays.filter((day) => day.balance > 0).length;
+    const goalDays = intakeDays.filter((day) => day.goal);
+    const goalHits = goalDays.filter((day) => Math.abs(day.intake - day.goal) / day.goal <= 0.1).length;
+    const direction = averageBalance < -1 ? '平均处于热量缺口' : averageBalance > 1 ? '平均处于热量盈余' : '平均热量基本平衡';
+    const icon = averageBalance < -1 ? '↘' : averageBalance > 1 ? '↗' : '≈';
+    const goalCopy = goalDays.length ? `摄入落在目标 ±10% 内的有 ${goalHits}/${goalDays.length} 天。` : '设置热量目标后，这里还会统计目标达成情况。';
+    insight.innerHTML = `<span>${icon}</span><div><strong>${direction}：${balanceDescription(averageBalance)}</strong><small>${completeDays.length} 个完整记录日中，${deficits} 天缺口、${surpluses} 天盈余。${goalCopy}</small></div>`;
+  }
+  insight.hidden = false;
+
+  const historyDays = [...recordedDays].reverse().slice(0, 14);
+  document.getElementById('energy-history-count').textContent = recordedDays.length > 14 ? `显示最近 14 / ${recordedDays.length} 天` : `${recordedDays.length} 天有记录`;
+  document.getElementById('balance-history').innerHTML = historyDays.length
+    ? historyDays.map((day) => {
+        const result = day.complete
+          ? `<strong class="${day.balance > 0 ? 'surplus-text' : 'deficit-text'}">${balanceDescription(day.balance)}</strong>`
+          : `<strong class="missing-balance">缺少${day.hasFood ? '消耗' : '饮食'}</strong>`;
+        return `<div><span>${day.iso.slice(5)}</span><small>摄入 ${day.hasFood ? displayEnergy(day.intake) : '—'} · 消耗 ${day.hasBurn ? displayEnergy(day.burn) : '—'}</small>${result}</div>`;
+      }).join('')
+    : '<p class="inline-empty">这个区间还没有热量记录。</p>';
+
+  renderEnergyPeriodLists(allDays);
 }
 
 function renderNutrients() {
@@ -1027,6 +1171,10 @@ document.getElementById('library-search-clear').addEventListener('click', () => 
   renderRecipes();
 });
 document.getElementById('template-search').addEventListener('input', renderQuickLists);
+document.querySelectorAll('[data-energy-range]').forEach((button) => button.addEventListener('click', () => {
+  energyRange = button.dataset.energyRange;
+  renderWeek();
+}));
 document.querySelectorAll('[data-weight-range]').forEach((button) => button.addEventListener('click', () => {
   weightRange = button.dataset.weightRange;
   renderWeightChart();
