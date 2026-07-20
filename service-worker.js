@@ -1,4 +1,4 @@
-const CACHE_NAME = 'opennutri-personal-v4';
+const CACHE_NAME = 'opennutri-personal-v5';
 const APP_SHELL = [
   './',
   './index.html',
