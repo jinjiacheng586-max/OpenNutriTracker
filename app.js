@@ -1,12 +1,12 @@
-const STORAGE_KEY = 'opennutri-personal-v5';
-const LEGACY_STORAGE_KEYS = ['opennutri-personal-v4', 'opennutri-personal-v3', 'opennutri-personal-v2', 'opennutri-web-state-v1'];
+const STORAGE_KEY = 'opennutri-personal-v6';
+const LEGACY_STORAGE_KEYS = ['opennutri-personal-v5', 'opennutri-personal-v4', 'opennutri-personal-v3', 'opennutri-personal-v2', 'opennutri-web-state-v1'];
 function localDateKey(date = new Date()) {
   const pad = (value) => String(value).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 const todayISO = () => localDateKey();
 const emptyState = () => ({
-  version: 5,
+  version: 6,
   initialized: false,
   profile: { name: '', birthDate: '', gender: '', height: null, targetWeight: null },
   goals: { kcal: null, carbs: null, protein: null, fat: null },
@@ -18,6 +18,7 @@ const emptyState = () => ({
   settings: { theme: 'system', energyUnit: 'kcal', measurement: 'metric' },
   foods: [],
   weights: [],
+  burns: [],
   recipes: [],
   ingredientsSeeded: false,
   templates: [],
@@ -29,12 +30,12 @@ function loadState() {
       || LEGACY_STORAGE_KEYS.map((key) => localStorage.getItem(key)).find(Boolean);
     if (!raw) return emptyState();
     const saved = JSON.parse(raw);
-    if (![2, 3, 4, 5].includes(saved?.version)) return emptyState();
+    if (![2, 3, 4, 5, 6].includes(saved?.version)) return emptyState();
     const legacyGoals = { ...emptyState().goals, ...(saved.goals || {}) };
     const migrated = {
       ...emptyState(),
       ...saved,
-      version: 5,
+      version: 6,
       goals: legacyGoals,
       goalProfiles: {
         training: { ...legacyGoals, ...(saved.goalProfiles?.training || {}) },
@@ -47,6 +48,7 @@ function loadState() {
       },
       foods: Array.isArray(saved.foods) ? saved.foods : [],
       weights: Array.isArray(saved.weights) ? saved.weights : [],
+      burns: Array.isArray(saved.burns) ? saved.burns : [],
       recipes: Array.isArray(saved.recipes) ? saved.recipes : [],
       templates: Array.isArray(saved.templates) ? saved.templates : [],
     };
@@ -61,13 +63,14 @@ let state = loadState();
 let selectedMeal = 'breakfast';
 let activeIngredientId = null;
 let editingIngredientId = null;
+let libraryFilter = 'per100g';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const mealNames = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐', snack: '零食' };
 const mealIcons = { breakfast: '☀', lunch: '☁', dinner: '☾', snack: '✦' };
 const views = {
   home: ['我的一天', '今天'],
   diary: ['趋势与营养', '最近 7 天'],
-  recipes: ['常用食材', '按克快速记录'],
+  recipes: ['快捷记录库', '食材与食谱'],
   profile: ['我的资料', '档案与设置'],
 };
 const foodDatabase = [
@@ -313,13 +316,30 @@ function renderWeek() {
     const date = new Date();
     date.setDate(date.getDate() - (6 - index));
     const iso = localDateKey(date);
-    return { date, iso, kcal: totalsForDate(iso).kcal };
+    const intake = totalsForDate(iso).kcal;
+    const burnRecord = state.burns.find((item) => item.date === iso);
+    const burn = burnRecord ? number(burnRecord.kcal) : null;
+    return { date, iso, intake, burn, balance: burn == null ? null : intake - burn };
   });
-  const max = Math.max(...Object.values(state.goalProfiles).map((goals) => number(goals.kcal)), ...days.map((day) => day.kcal), 1);
-  const recorded = days.filter((day) => day.kcal > 0);
-  const average = recorded.length ? recorded.reduce((sum, day) => sum + day.kcal, 0) / recorded.length : 0;
-  document.getElementById('week-average').textContent = recorded.length ? `平均 ${displayEnergy(average)}` : '暂无记录';
-  container.innerHTML = days.map((day, index) => `<div class="${index === 6 ? 'today' : ''}"><span class="bar-value">${day.kcal ? formatNumber(day.kcal) : ''}</span><i style="height:${day.kcal ? Math.max(8, day.kcal / max * 100) : 3}%"></i><span>${new Intl.DateTimeFormat('zh-CN', { weekday: 'short' }).format(day.date).replace('周', '')}</span></div>`).join('');
+  const recorded = days.filter((day) => day.balance != null);
+  const maxAbs = Math.max(...recorded.map((day) => Math.abs(day.balance)), 1);
+  const totalBalance = recorded.reduce((sum, day) => sum + day.balance, 0);
+  document.getElementById('week-average').textContent = recorded.length
+    ? `7 天合计 ${totalBalance > 0 ? '盈余 ' : totalBalance < 0 ? '缺口 ' : '平衡 '}${displayEnergy(Math.abs(totalBalance))}`
+    : '等待消耗记录';
+  container.innerHTML = days.map((day, index) => {
+    const weekday = new Intl.DateTimeFormat('zh-CN', { weekday: 'short' }).format(day.date).replace('周', '');
+    if (day.balance == null) return `<div class="${index === 6 ? 'today' : ''}"><span class="bar-value">—</span><span class="balance-track"><i class="missing"></i></span><span>${weekday}</span></div>`;
+    const height = Math.max(4, Math.abs(day.balance) / maxAbs * 45);
+    const direction = day.balance > 0 ? 'surplus' : day.balance < 0 ? 'deficit' : 'balanced';
+    return `<div class="${index === 6 ? 'today' : ''}" title="摄入 ${formatNumber(day.intake)} · 消耗 ${formatNumber(day.burn)}"><span class="bar-value">${day.balance > 0 ? '+' : day.balance < 0 ? '−' : ''}${formatNumber(Math.abs(day.balance))}</span><span class="balance-track"><i class="${direction}" style="height:${height}%;${day.balance > 0 ? 'bottom:50%' : 'top:50%'}"></i></span><span>${weekday}</span></div>`;
+  }).join('');
+  document.getElementById('balance-history').innerHTML = [...days].reverse().map((day) => {
+    const result = day.balance == null
+      ? '<strong class="missing-balance">未记录消耗</strong>'
+      : `<strong class="${day.balance > 0 ? 'surplus-text' : 'deficit-text'}">${day.balance > 0 ? '盈余' : day.balance < 0 ? '缺口' : '平衡'} ${displayEnergy(Math.abs(day.balance))}</strong>`;
+    return `<div><span>${day.iso.slice(5)}</span><small>摄入 ${displayEnergy(day.intake)} · 消耗 ${day.burn == null ? '—' : displayEnergy(day.burn)}</small>${result}</div>`;
+  }).join('');
 }
 
 function renderNutrients() {
@@ -354,8 +374,11 @@ function renderWeightChart() {
   const min = Math.min(...values) - 1;
   const max = Math.max(...values) + 1;
   const range = Math.max(1, max - min);
-  const points = recent.map((item, index) => {
-    const x = recent.length === 1 ? 50 : 7 + index / (recent.length - 1) * 86;
+  const firstSerial = dateSerial(recent[0].date);
+  const lastSerial = dateSerial(recent.at(-1).date);
+  const dateRange = Math.max(1, lastSerial - firstSerial);
+  const points = recent.map((item) => {
+    const x = recent.length === 1 ? 50 : 7 + (dateSerial(item.date) - firstSerial) / dateRange * 86;
     const y = 88 - (item.weight - min) / range * 70;
     return { x, y, item };
   });
@@ -421,8 +444,17 @@ function renderProfile() {
 function renderRecipes() {
   const grid = document.getElementById('recipe-grid');
   grid.innerHTML = '';
-  document.getElementById('recipe-empty').hidden = state.recipes.length > 0;
-  state.recipes.forEach((ingredient) => {
+  const items = state.recipes.filter((item) => libraryFilter === 'per100g' ? item.basis === 'per100g' : item.basis !== 'per100g');
+  document.querySelectorAll('[data-library-tab]').forEach((button) => button.classList.toggle('active', button.dataset.libraryTab === libraryFilter));
+  document.getElementById('ingredient-library-copy').hidden = libraryFilter !== 'per100g';
+  document.getElementById('recipe-library-copy').hidden = libraryFilter === 'per100g';
+  const empty = document.getElementById('recipe-empty');
+  empty.hidden = items.length > 0;
+  empty.querySelector('h2').textContent = libraryFilter === 'per100g' ? '还没有常用食材' : '还没有常用食谱';
+  empty.querySelector('p').textContent = libraryFilter === 'per100g' ? '添加每 100 克营养，以后只输入克数即可。' : '保存经常烧的菜，下次直接按份记录。';
+  empty.querySelector('button').textContent = libraryFilter === 'per100g' ? '添加第一个食材' : '添加第一个食谱';
+  empty.querySelector('button').dataset.action = libraryFilter === 'per100g' ? 'ingredient' : 'recipe';
+  items.forEach((ingredient) => {
     const per100g = ingredient.basis === 'per100g';
     const card = document.createElement('article');
     card.className = 'recipe-card';
@@ -440,7 +472,7 @@ function renderRecipes() {
       state.recipes = state.recipes.filter((item) => item.id !== ingredient.id);
       saveState();
       renderRecipes();
-      showToast('食材已删除');
+      showToast(per100g ? '食材已删除' : '食谱已删除');
     });
     grid.append(card);
   });
@@ -458,17 +490,22 @@ function openIngredientLog(ingredient) {
   form.elements.meal.value = selectedMeal;
   document.getElementById('ingredient-log-help').textContent = per100g
     ? `营养数据按每 100 克计算，输入实际食用重量即可。`
-    : '这是从旧版食谱保留的固定份量项目，可输入 0.5、1、2 等份数。';
+    : '这是按一整份保存的食谱，可输入 0.5、1、2 等份数。';
   openDialog('ingredient-log-dialog');
 }
 
-function openIngredientEditor(ingredient = null) {
+function openIngredientEditor(ingredient = null, defaultBasis = 'per100g') {
   editingIngredientId = ingredient?.id || null;
   const form = document.getElementById('recipe-form');
   form.reset();
-  document.getElementById('ingredient-editor-title').textContent = ingredient ? '修改食材' : '添加食材';
-  document.getElementById('ingredient-save-button').textContent = ingredient ? '保存修改' : '保存食材';
-  fillForm(form, ingredient || { basis: 'per100g', emoji: '🍴' });
+  const basis = ingredient?.basis || defaultBasis;
+  const noun = basis === 'per100g' ? '食材' : '食谱';
+  form.querySelector('.dialog-header .label').textContent = basis === 'per100g' ? '常用食材' : '常用食谱';
+  form.elements.name.closest('label').firstChild.textContent = `${noun}名称`;
+  form.elements.name.placeholder = basis === 'per100g' ? '例如：鸡胸肉（熟）' : '例如：番茄炖牛肉';
+  document.getElementById('ingredient-editor-title').textContent = ingredient ? `修改${noun}` : `添加${noun}`;
+  document.getElementById('ingredient-save-button').textContent = ingredient ? '保存修改' : `保存${noun}`;
+  fillForm(form, ingredient || { basis, emoji: basis === 'per100g' ? '🍴' : '🍲' });
   updateIngredientBasisHint();
   openDialog('recipe-dialog');
 }
@@ -477,7 +514,7 @@ function updateIngredientBasisHint() {
   const basis = document.getElementById('ingredient-basis').value;
   document.getElementById('ingredient-basis-hint').textContent = basis === 'per100g'
     ? '下面填写每 100 克所含的营养；记录时只需输入吃了多少克。'
-    : '兼容原有固定份量项目；记录时输入吃了几份。';
+    : '填写整道菜一份的营养；以后记录时可输入 0.5、1、2 等份数。';
 }
 
 function renderAll() {
@@ -823,6 +860,31 @@ document.getElementById('weight-form').addEventListener('submit', (event) => {
   showToast('体重已保存');
 });
 
+function openBurn() {
+  const form = document.getElementById('burn-form');
+  const existing = state.burns.find((item) => item.date === todayISO());
+  form.elements.date.value = todayISO();
+  form.elements.kcal.value = existing?.kcal || '';
+  openDialog('burn-dialog');
+}
+
+document.getElementById('burn-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  const values = formValues(event.currentTarget);
+  const existing = state.burns.find((item) => item.date === values.date);
+  if (existing) existing.kcal = number(values.kcal);
+  else state.burns.push({ id: crypto.randomUUID(), date: values.date, kcal: number(values.kcal) });
+  saveState();
+  event.currentTarget.closest('dialog').close();
+  renderAll();
+  showToast('热量消耗已保存');
+});
+
+document.querySelectorAll('[data-library-tab]').forEach((button) => button.addEventListener('click', () => {
+  libraryFilter = button.dataset.libraryTab;
+  renderRecipes();
+}));
+
 document.getElementById('ingredient-basis').addEventListener('change', updateIngredientBasisHint);
 
 document.getElementById('ingredient-log-form').addEventListener('submit', (event) => {
@@ -868,7 +930,8 @@ document.getElementById('recipe-form').addEventListener('submit', (event) => {
   event.currentTarget.reset();
   event.currentTarget.closest('dialog').close();
   renderRecipes();
-  showToast(editingIngredientId ? '食材已修改' : '食材已保存');
+  const noun = item.basis === 'per100g' ? '食材' : '食谱';
+  showToast(editingIngredientId ? `${noun}已修改` : `${noun}已保存`);
   editingIngredientId = null;
 });
 
@@ -878,8 +941,10 @@ document.querySelectorAll('[data-action]').forEach((button) => button.addEventLi
   if (action === 'goals') openGoals();
   if (action === 'appearance') openAppearance();
   if (action === 'weight') { setView('diary'); openWeight(); }
+  if (action === 'burn') { setView('diary'); openBurn(); }
   if (action === 'weight-view') setView('diary');
-  if (action === 'recipe') openIngredientEditor();
+  if (action === 'ingredient') openIngredientEditor(null, 'per100g');
+  if (action === 'recipe') openIngredientEditor(null, 'serving');
   if (action === 'data') openDialog('data-dialog');
   if (action === 'privacy') openDialog('privacy-dialog');
 }));
@@ -899,12 +964,12 @@ document.getElementById('import-data').addEventListener('change', async (event) 
   if (!file) return;
   try {
     const imported = JSON.parse(await file.text());
-    if (![2, 3, 4, 5].includes(imported.version) || !Array.isArray(imported.foods) || !Array.isArray(imported.weights)) throw new Error('invalid');
+    if (![2, 3, 4, 5, 6].includes(imported.version) || !Array.isArray(imported.foods) || !Array.isArray(imported.weights)) throw new Error('invalid');
     const importedGoals = { ...emptyState().goals, ...(imported.goals || {}) };
     state = {
       ...emptyState(),
       ...imported,
-      version: 5,
+      version: 6,
       goals: importedGoals,
       goalProfiles: {
         training: { ...importedGoals, ...(imported.goalProfiles?.training || {}) },
@@ -916,6 +981,7 @@ document.getElementById('import-data').addEventListener('change', async (event) 
         overrides: { ...(imported.trainingCycle?.overrides || {}) },
       },
       recipes: Array.isArray(imported.recipes) ? imported.recipes : [],
+      burns: Array.isArray(imported.burns) ? imported.burns : [],
       templates: Array.isArray(imported.templates) ? imported.templates : [],
     };
     ensureStarterIngredients();
@@ -931,7 +997,7 @@ document.getElementById('import-data').addEventListener('change', async (event) 
 });
 
 document.getElementById('reset-data').addEventListener('click', () => {
-  if (!confirm('确定清空这台设备上的个人档案、餐食、体重和常用食材吗？此操作无法撤销。')) return;
+  if (!confirm('确定清空这台设备上的个人档案、餐食、体重、热量消耗、常用食材和食谱吗？此操作无法撤销。')) return;
   localStorage.removeItem(STORAGE_KEY);
   LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
   location.reload();
