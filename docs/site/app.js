@@ -190,7 +190,7 @@ function displayWeight(kg) {
 function applyTheme() {
   const dark = state.settings.theme === 'dark' || (state.settings.theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
   document.body.classList.toggle('dark', dark);
-  document.querySelector('meta[name="theme-color"]').content = dark ? '#101411' : '#167a49';
+  document.querySelector('meta[name="theme-color"]').content = dark ? '#000000' : '#f2f2f7';
 }
 
 function showToast(message) {
@@ -263,9 +263,9 @@ function renderDashboard() {
   document.getElementById('energy-ring').style.setProperty('--progress', `${percent}%`);
 
   const macroData = [
-    ['carbs', '碳水化合物', 'C', '#d79a51'],
-    ['protein', '蛋白质', 'P', '#20a663'],
-    ['fat', '脂肪', 'F', '#8069c7'],
+    ['carbs', '碳水化合物', 'C', '#00ddeb'],
+    ['protein', '蛋白质', 'P', '#b6ff00'],
+    ['fat', '脂肪', 'F', '#ff2d78'],
   ];
   document.getElementById('macro-list').innerHTML = macroData.map(([key, label, letter, color]) => {
     const macroGoal = number(activeGoals[key]);
