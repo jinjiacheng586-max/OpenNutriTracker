@@ -5,6 +5,12 @@ function localDateKey(date = new Date()) {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 const todayISO = () => localDateKey();
+function relativeDateISO(dayOffset) {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + dayOffset);
+  return localDateKey(date);
+}
 const emptyState = () => ({
   version: 7,
   initialized: false,
@@ -543,6 +549,130 @@ function weightTrendPerDay(weights) {
   return weights.reduce((sum, item, index) => sum + ((xs[index] - xMean) * (item.weight - yMean)), 0) / denominator;
 }
 
+function weightFeedbackStats(days) {
+  const todaySerial = dateSerial(todayISO());
+  const startSerial = todaySerial - days + 1;
+  const weights = [...state.weights]
+    .filter((item) => {
+      const serial = dateSerial(item.date);
+      return serial >= startSerial && serial <= todaySerial;
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const energyDays = energyDaysBetween(startSerial, todaySerial);
+  const completeDays = energyDays.filter((day) => day.complete);
+  const slope = weightTrendPerDay(weights);
+  const span = weights.length > 1 ? dateSerial(weights.at(-1).date) - dateSerial(weights[0].date) : 0;
+  const averageBalance = average(completeDays.map((day) => day.balance));
+  return {
+    days,
+    weights,
+    weightCount: weights.length,
+    span,
+    completeCount: completeDays.length,
+    weeklyTrend: slope == null ? null : slope * 7,
+    averageBalance,
+    observedChange: slope == null ? null : slope * days,
+    expectedChange: averageBalance == null ? null : averageBalance * days / 7700,
+  };
+}
+
+function feedbackGoalMode(latestWeight) {
+  const target = number(state.profile.targetWeight) || null;
+  if (!target || !latestWeight) return { mode: 'unknown', target };
+  const tolerance = Math.max(0.2, latestWeight * 0.0025);
+  if (latestWeight > target + tolerance) return { mode: 'loss', target };
+  if (latestWeight < target - tolerance) return { mode: 'gain', target };
+  return { mode: 'maintain', target };
+}
+
+function feedbackAssessment(stats, formal) {
+  const latestWeight = stats.weights.at(-1)?.weight || null;
+  const { mode } = feedbackGoalMode(latestWeight);
+  const weeklyPercent = latestWeight && stats.weeklyTrend != null ? stats.weeklyTrend / latestWeight * 100 : null;
+  if (mode === 'unknown') {
+    return {
+      tone: 'neutral',
+      icon: '◎',
+      title: '设置目标体重后才能判断摄入是否合适',
+      detail: '目前可以计算体重方向，但“偏多、偏少或刚好”必须结合减脂、增重或维持目标判断。',
+      weeklyPercent,
+    };
+  }
+  if (weeklyPercent == null) return null;
+  let tone = 'good';
+  let title = '当前摄入与目标基本匹配';
+  let pace = '';
+  if (mode === 'loss') {
+    pace = '减脂阶段常见目标是每周约 0.5%–1.0% 的渐进下降；体脂较低或更重视训练表现时应更保守。';
+    if (weeklyPercent < -1) ({ tone, title } = { tone: 'alert', title: '摄入可能偏低，体重下降过快' });
+    else if (weeklyPercent > -0.25) ({ tone, title } = { tone: 'watch', title: weeklyPercent > 0.1 ? '摄入可能偏高，体重方向与目标相反' : '摄入可能略高，下降速度较慢' });
+  } else if (mode === 'gain') {
+    pace = '增重阶段通常关注每周约 0.25%–0.5% 的渐进上升，训练经验越丰富越应保守。';
+    if (weeklyPercent > 0.5) ({ tone, title } = { tone: 'watch', title: '摄入可能偏高，体重增长较快' });
+    else if (weeklyPercent < 0.1) ({ tone, title } = { tone: 'watch', title: weeklyPercent < -0.1 ? '摄入可能偏低，体重方向与目标相反' : '摄入可能略低，增长速度较慢' });
+  } else {
+    pace = '维持阶段以每周变化不超过约 0.25% 作为较稳定的观察区间。';
+    if (weeklyPercent > 0.25) ({ tone, title } = { tone: 'watch', title: '摄入可能偏高，体重正在上升' });
+    else if (weeklyPercent < -0.25) ({ tone, title } = { tone: 'watch', title: '摄入可能偏低，体重正在下降' });
+  }
+  const expected = stats.expectedChange;
+  const observed = stats.observedChange;
+  const agreementTolerance = expected == null ? null : Math.max(0.4, Math.abs(expected) * 0.75);
+  const recordsAgree = expected != null && observed != null && Math.abs(expected - observed) <= agreementTolerance;
+  const agreementCopy = expected == null
+    ? '完整的饮食与消耗记录不足，暂时不能比较热量收支和体重变化。'
+    : recordsAgree
+      ? '热量记录推算与实际体重方向大致一致。'
+      : '热量记录推算与实际体重变化不完全一致；优先检查饮食漏记和手表误差，不要只凭手表数字调整。';
+  return {
+    tone,
+    icon: tone === 'good' ? '✓' : tone === 'alert' ? '!' : '↕',
+    title,
+    detail: `${formal ? '这是28日正式评估。' : '这是14日方向报告，暂不建议频繁改热量。'}${pace}${agreementCopy}`,
+    weeklyPercent,
+  };
+}
+
+function feedbackStageMarkup(stats, label, requirement) {
+  const ready = requirement == null
+    ? stats.weightCount >= 2
+    : stats.weightCount >= requirement.weights && stats.span >= requirement.span && stats.completeCount >= requirement.complete;
+  const stateCopy = requirement == null
+    ? (stats.weightCount >= 2 ? '观察波动' : '等待体重')
+    : ready ? (stats.days === 28 ? '可以作决定' : '可以看方向') : '数据积累中';
+  return `<div class="feedback-stage ${ready ? 'ready' : ''}"><span>${stats.days}</span><p><strong>${label}</strong><small>${stats.weightCount} 次体重 · ${stats.completeCount} 天完整收支</small></p><b>${stateCopy}</b></div>`;
+}
+
+function renderBodyFeedback() {
+  const seven = weightFeedbackStats(7);
+  const fourteen = weightFeedbackStats(14);
+  const twentyEight = weightFeedbackStats(28);
+  const directionReady = fourteen.weightCount >= 4 && fourteen.span >= 10 && fourteen.completeCount >= 7;
+  const decisionReady = twentyEight.weightCount >= 8 && twentyEight.span >= 21 && twentyEight.completeCount >= 14;
+  document.getElementById('feedback-stage-grid').innerHTML = [
+    feedbackStageMarkup(seven, '7日波动', null),
+    feedbackStageMarkup(fourteen, '14日方向', { weights: 4, span: 10, complete: 7 }),
+    feedbackStageMarkup(twentyEight, '28日决定', { weights: 8, span: 21, complete: 14 }),
+  ].join('');
+  const result = document.getElementById('body-feedback-result');
+  const activeStats = decisionReady ? twentyEight : directionReady ? fourteen : null;
+  const assessment = activeStats ? feedbackAssessment(activeStats, decisionReady) : null;
+  if (!assessment) {
+    const missingWeight = Math.max(0, 4 - fourteen.weightCount);
+    const missingComplete = Math.max(0, 7 - fourteen.completeCount);
+    result.className = 'body-feedback-result neutral';
+    result.innerHTML = `<span>◎</span><div><strong>先积累14天方向数据</strong><small>还需要约 ${missingWeight} 次体重记录和 ${missingComplete} 天完整的饮食＋消耗记录。建议晨起、如厕后、进食前记录体重。</small></div>`;
+    return;
+  }
+  const weeklyCopy = assessment.weeklyPercent == null ? '—' : `${assessment.weeklyPercent > 0 ? '+' : ''}${formatNumber(assessment.weeklyPercent, 2)}% / 周`;
+  const balanceCopy = activeStats.averageBalance == null ? '—' : balanceDescription(activeStats.averageBalance);
+  const comparisonCopy = activeStats.expectedChange == null || activeStats.observedChange == null
+    ? '数据不足'
+    : `趋势 ${weightDelta(activeStats.observedChange)} · 推算 ${weightDelta(activeStats.expectedChange)}`;
+  result.className = `body-feedback-result ${assessment.tone}`;
+  result.innerHTML = `<span>${assessment.icon}</span><div><strong>${assessment.title}</strong><small>${assessment.detail}</small><div class="feedback-metrics"><p><span>每周体重率</span><b>${weeklyCopy}</b></p><p><span>平均热量收支</span><b>${balanceCopy}</b></p><p><span>${activeStats.days}日趋势</span><b>${comparisonCopy}</b></p></div><em>手表消耗存在个体误差，本报告以长期体重趋势为主，只作为运动营养参考。</em></div>`;
+}
+
 function renderMonthlyWeights(weights) {
   const card = document.getElementById('monthly-weight-card');
   const container = document.getElementById('monthly-weight-list');
@@ -775,6 +905,7 @@ function renderAll() {
   renderWeek();
   renderNutrients();
   renderWeightChart();
+  renderBodyFeedback();
   renderProfile();
   renderRecipes();
 }
@@ -1136,9 +1267,13 @@ document.getElementById('weight-form').addEventListener('submit', (event) => {
 
 function openBurn() {
   const form = document.getElementById('burn-form');
-  const existing = state.burns.find((item) => item.date === todayISO());
-  form.elements.date.value = todayISO();
+  const defaultDate = relativeDateISO(-1);
+  const existing = state.burns.find((item) => item.date === defaultDate);
+  form.elements.date.value = defaultDate;
   form.elements.kcal.value = existing?.kcal || '';
+  document.getElementById('burn-dialog-hint').textContent = existing
+    ? '默认选择昨天；这一天已有记录，修改数值后保存会更新原记录。日期仍可修改。'
+    : '默认选择昨天，因为手表通常要在一天结束后才显示完整消耗；日期仍可修改。';
   openDialog('burn-dialog');
 }
 
