@@ -84,6 +84,11 @@
           <div class="weight-summary" id="weight-summary"></div>
           <div class="weight-insight" id="weight-insight" hidden></div>
         </article>
+        <article class="card body-feedback-card">
+          <div class="body-feedback-heading"><div><span class="label">运动营养反馈</span><h2>热量与体重反馈</h2></div><small>7日看波动 · 14日看方向 · 28日作决定</small></div>
+          <div class="feedback-stage-grid" id="feedback-stage-grid"></div>
+          <div class="body-feedback-result" id="body-feedback-result"></div>
+        </article>
         <article class="card monthly-weight-card" id="monthly-weight-card" hidden>
           <div class="card-heading"><div><span class="label">按月汇总</span><h2>每月平均体重</h2></div><small id="monthly-weight-subtitle"></small></div>
           <div class="monthly-weight-list" id="monthly-weight-list"></div>
@@ -170,7 +175,7 @@
 
   <dialog id="weight-dialog" class="sheet"><form id="weight-form"><header class="dialog-header"><div><span class="label">身体变化</span><h2>记录体重</h2></div><button type="button" class="close-button" data-close>×</button></header><div class="form-grid"><label>日期<input name="date" type="date" required /></label><label id="weight-input-label">体重（公斤）<input name="weight" type="number" min="20" max="900" step="0.1" required /></label></div><button class="primary-button wide" type="submit">保存体重</button><div class="history-list" id="weight-history"></div></form></dialog>
 
-  <dialog id="burn-dialog" class="sheet"><form id="burn-form"><header class="dialog-header"><div><span class="label">来自手表</span><h2>记录每日热量消耗</h2></div><button type="button" class="close-button" data-close>×</button></header><p class="panel-hint">手动填写手表显示的当天总热量消耗。App 会用“摄入 − 消耗”计算热量盈余或缺口。</p><div class="form-grid"><label>日期<input name="date" type="date" required /></label><label>总消耗（千卡）<input name="kcal" type="number" min="0" max="10000" step="1" required placeholder="例如：2600" /></label></div><button class="primary-button wide" type="submit">保存并计算收支</button></form></dialog>
+  <dialog id="burn-dialog" class="sheet"><form id="burn-form"><header class="dialog-header"><div><span class="label">来自手表</span><h2>记录每日热量消耗</h2></div><button type="button" class="close-button" data-close>×</button></header><p class="panel-hint" id="burn-dialog-hint">默认记录昨天，因为手表通常要在一天结束后才显示完整消耗；日期仍可修改。</p><div class="form-grid"><label>日期<input name="date" type="date" required /></label><label>总消耗（千卡）<input name="kcal" type="number" min="0" max="10000" step="1" required placeholder="例如：2600" /></label></div><button class="primary-button wide" type="submit">保存并计算收支</button></form></dialog>
 
   <dialog id="recipe-dialog" class="sheet"><form id="recipe-form"><header class="dialog-header"><div><span class="label">快捷库</span><h2 id="ingredient-editor-title">添加食材</h2></div><button type="button" class="close-button" data-close>×</button></header><div class="library-type-picker"><span>保存为</span><label><input type="radio" name="libraryType" value="ingredient" checked /><strong>食材</strong><small>按每 100 克换算</small></label><label><input type="radio" name="libraryType" value="recipe" /><strong>食谱</strong><small>按一整份记录</small></label></div><div class="form-grid ingredient-name-fields"><label class="full">食材名称<input name="name" required placeholder="例如：鸡胸肉（熟）" /></label><label>图标<input name="emoji" maxlength="4" placeholder="🍗" /></label></div><p class="panel-hint ingredient-basis-hint" id="ingredient-basis-hint">下面填写每 100 克所含的营养；记录时只需输入吃了多少克。</p><div class="form-grid"><label>热量（千卡）<input name="kcal" type="number" min="0" step="0.1" required /></label><label>蛋白质（克）<input name="protein" type="number" min="0" step="0.1" required /></label><label>碳水（克）<input name="carbs" type="number" min="0" step="0.1" required /></label><label>脂肪（克）<input name="fat" type="number" min="0" step="0.1" required /></label></div><button class="primary-button wide" id="ingredient-save-button" type="submit">保存食材</button></form></dialog>
 
