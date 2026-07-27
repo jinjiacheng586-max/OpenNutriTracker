@@ -85,6 +85,8 @@ let editingTemplateId = null;
 let libraryFilter = 'per100g';
 let librarySearchQuery = '';
 let energyRange = '30';
+let energyMetric = 'balance';
+let energyHistoryFilter = 'all';
 let weightRange = 'all';
 const DAY_MS = 24 * 60 * 60 * 1000;
 const mealNames = { breakfast: '早餐', lunch: '午餐', dinner: '晚餐', snack: '零食' };
@@ -431,6 +433,106 @@ function renderEnergyPeriodLists(allDays) {
     : '<p class="inline-empty">记录一段时间后，这里会显示每月平均。</p>';
 }
 
+function energyHistoryRow(day) {
+  const result = day.complete
+    ? `<strong class="${day.balance > 0 ? 'surplus-text' : day.balance < 0 ? 'deficit-text' : ''}">${balanceDescription(day.balance)}</strong>`
+    : `<strong class="missing-balance">缺少${day.hasFood ? '消耗' : '饮食'}</strong>`;
+  return `<div><span>${day.iso.slice(5)}</span><small>摄入 ${day.hasFood ? displayEnergy(day.intake) : '—'} · 消耗 ${day.hasBurn ? displayEnergy(day.burn) : '—'}</small>${result}</div>`;
+}
+
+function allRecordedEnergyDays() {
+  const todaySerial = dateSerial(todayISO());
+  const dates = [...state.foods.map((food) => food.date), ...state.burns.map((burn) => burn.date)].filter(Boolean).sort();
+  if (!dates.length) return [];
+  return energyDaysBetween(Math.min(todaySerial, dateSerial(dates[0])), todaySerial).filter((day) => day.recorded);
+}
+
+function renderAllEnergyHistory() {
+  const from = document.getElementById('energy-history-from').value;
+  const to = document.getElementById('energy-history-to').value;
+  const matchesStatus = (day) => {
+    if (energyHistoryFilter === 'deficit') return day.complete && day.balance < 0;
+    if (energyHistoryFilter === 'surplus') return day.complete && day.balance > 0;
+    if (energyHistoryFilter === 'incomplete') return !day.complete;
+    return true;
+  };
+  const days = allRecordedEnergyDays()
+    .filter((day) => (!from || day.iso >= from) && (!to || day.iso <= to) && matchesStatus(day))
+    .reverse();
+  document.querySelectorAll('[data-energy-history-filter]').forEach((button) => button.classList.toggle('active', button.dataset.energyHistoryFilter === energyHistoryFilter));
+  document.getElementById('energy-history-result-count').textContent = days.length
+    ? `找到 ${days.length} 天记录，按月份折叠显示。`
+    : '当前筛选条件下没有记录。';
+  const groups = new Map();
+  days.forEach((day) => {
+    const key = day.iso.slice(0, 7);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(day);
+  });
+  document.getElementById('energy-history-months').innerHTML = groups.size
+    ? [...groups].map(([month, monthDays], index) => `<details class="energy-history-month" ${index === 0 ? 'open' : ''}><summary><span>${month.slice(0, 4)}年${number(month.slice(5))}月</span><small>${monthDays.length} 天</small></summary><div class="balance-history">${monthDays.map(energyHistoryRow).join('')}</div></details>`).join('')
+    : '<p class="inline-empty">换一个日期范围或状态再看看。</p>';
+}
+
+function movingAverageSeries(values, windowSize) {
+  return values.map((value, index) => {
+    if (index < windowSize - 1) return null;
+    const windowValues = values.slice(index - windowSize + 1, index + 1);
+    return windowValues.every((item) => item != null) ? average(windowValues) : null;
+  });
+}
+
+function renderEnergyChart(groups, mode) {
+  const metricLabels = { intake: '摄入', burn: '消耗', balance: '收支' };
+  const values = groups.map((group) => group[energyMetric]);
+  const available = values.filter((value) => value != null);
+  const container = document.getElementById('week-bars');
+  const title = document.getElementById('energy-chart-title');
+  const guide = document.getElementById('energy-chart-guide');
+  const legend = document.getElementById('energy-chart-legend');
+  const modeName = mode === 'day' ? '每日' : mode === 'week' ? '每周' : '每月';
+  const showMovingAverage = energyRange === '30' && mode === 'day';
+  document.querySelectorAll('[data-energy-metric]').forEach((button) => button.classList.toggle('active', button.dataset.energyMetric === energyMetric));
+  title.textContent = `${modeName}平均${metricLabels[energyMetric]}`;
+  guide.textContent = energyMetric === 'balance'
+    ? '零线上方为盈余，下方为缺口'
+    : showMovingAverage ? '柱状为每日记录，细线为7日移动平均' : '柱状高度代表该周期平均值';
+  if (!available.length) {
+    container.innerHTML = `<div class="energy-chart-empty"><span>⌁</span><strong>还没有${metricLabels[energyMetric]}数据</strong><small>${energyMetric === 'burn' ? '记录手表每日总消耗后即可显示。' : energyMetric === 'intake' ? '记录饮食后即可显示。' : '同一天同时记录饮食和消耗后才能计算收支。'}</small></div>`;
+    legend.innerHTML = '';
+    return;
+  }
+
+  const scaleMax = energyMetric === 'balance'
+    ? Math.max(...available.map((value) => Math.abs(value)), 1)
+    : Math.max(...available, 1);
+  const moving = showMovingAverage ? movingAverageSeries(values, 7) : values.map(() => null);
+  const pointY = (value) => energyMetric === 'balance'
+    ? 50 - value / scaleMax * 42
+    : 92 - value / scaleMax * 82;
+  const points = moving.map((value, index) => value == null ? null : `${index * 100 + 50},${pointY(value)}`).filter(Boolean).join(' ');
+  const columns = groups.map((group, index) => {
+    const value = values[index];
+    const missing = value == null;
+    const height = missing ? 2 : Math.max(3, Math.abs(value) / scaleMax * (energyMetric === 'balance' ? 42 : 82));
+    const direction = missing ? 'missing' : energyMetric === 'balance'
+      ? value > 0 ? 'surplus' : value < 0 ? 'deficit' : 'balanced'
+      : energyMetric;
+    const position = energyMetric === 'balance'
+      ? value > 0 ? 'bottom:50%' : value < 0 ? 'top:50%' : 'top:calc(50% - 2px)'
+      : 'bottom:0';
+    const valueCopy = missing ? '—' : `${energyMetric === 'balance' && value > 0 ? '+' : energyMetric === 'balance' && value < 0 ? '−' : ''}${formatNumber(Math.abs(value))}`;
+    return `<div class="energy-column"><span class="bar-value">${valueCopy}</span><span class="energy-metric-track ${energyMetric === 'balance' ? 'has-zero' : ''}"><i class="${direction}" style="height:${height}%;${position}"></i></span><span>${group.label}</span></div>`;
+  }).join('');
+  container.innerHTML = `<div class="energy-plot" style="--energy-columns:${groups.length};--energy-chart-width:${Math.max(groups.length, 7) * 44}px"><div class="energy-columns">${columns}</div>${points ? `<svg class="energy-moving-line" viewBox="0 0 ${groups.length * 100} 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${points}"></polyline></svg>` : ''}</div>`;
+  legend.innerHTML = energyMetric === 'balance'
+    ? '<span><i class="deficit"></i>热量缺口</span><span><i class="surplus"></i>热量盈余</span>'
+    : `<span><i class="${energyMetric}"></i>${metricLabels[energyMetric]}</span>${showMovingAverage ? '<span><i class="average-line"></i>7日移动平均</span>' : ''}`;
+  requestAnimationFrame(() => {
+    container.scrollLeft = container.scrollWidth;
+  });
+}
+
 function renderWeek() {
   const todaySerial = dateSerial(todayISO());
   const recordedDates = [...state.foods.map((food) => food.date), ...state.burns.map((burn) => burn.date)]
@@ -448,13 +550,12 @@ function renderWeek() {
   const averageIntake = average(intakeDays.map((day) => day.intake));
   const averageBurn = average(burnDays.map((day) => day.burn));
   const averageBalance = average(completeDays.map((day) => day.balance));
-  const mode = energyRange === '7' ? 'day' : energyRange === 'all' ? 'month' : 'week';
+  const mode = energyRange === '7' || energyRange === '30' ? 'day' : energyRange === '90' ? 'week' : 'month';
   const periodName = energyRange === 'all' ? '全部记录' : `最近 ${energyRange} 天`;
   const modeName = mode === 'day' ? '按日' : mode === 'week' ? '按周' : '按月';
 
   document.querySelectorAll('[data-energy-range]').forEach((button) => button.classList.toggle('active', button.dataset.energyRange === energyRange));
   document.getElementById('energy-period-label').textContent = `${periodName} · ${modeName}`;
-  document.getElementById('energy-chart-title').textContent = `${modeName}平均热量收支`;
   document.getElementById('energy-summary').innerHTML = [
     ['🍽', '平均摄入', averageIntake == null ? '—' : displayEnergy(averageIntake)],
     ['🔥', '平均消耗', averageBurn == null ? '—' : displayEnergy(averageBurn)],
@@ -462,20 +563,8 @@ function renderWeek() {
     ['✓', '完整记录', `${completeDays.length} / ${days.length} 天`],
   ].map(([icon, label, value]) => `<div><span>${icon}</span><p><small>${label}</small><strong>${value}</strong></p></div>`).join('');
 
-  const chartGroups = groupEnergyDays(days, mode).slice(-14);
-  const balancedGroups = chartGroups.filter((group) => group.balance != null);
-  const maxAbs = Math.max(...balancedGroups.map((group) => Math.abs(group.balance)), 1);
-  const container = document.getElementById('week-bars');
-  if (!balancedGroups.length) {
-    container.innerHTML = '<div class="energy-chart-empty"><span>⌁</span><strong>还不能计算热量收支</strong><small>同一天同时记录饮食和消耗后，这里才会比较盈余或缺口。</small></div>';
-  } else {
-    container.innerHTML = chartGroups.map((group) => {
-      if (group.balance == null) return `<div><span class="bar-value">—</span><span class="balance-track"><i class="missing"></i></span><span>${group.label}</span></div>`;
-      const height = Math.max(4, Math.abs(group.balance) / maxAbs * 45);
-      const direction = group.balance > 0 ? 'surplus' : group.balance < 0 ? 'deficit' : 'balanced';
-      return `<div title="平均摄入 ${group.intake == null ? '—' : formatNumber(group.intake)} · 平均消耗 ${group.burn == null ? '—' : formatNumber(group.burn)}"><span class="bar-value">${group.balance > 0 ? '+' : group.balance < 0 ? '−' : ''}${formatNumber(Math.abs(group.balance))}</span><span class="balance-track"><i class="${direction}" style="height:${height}%;${group.balance > 0 ? 'bottom:50%' : 'top:50%'}"></i></span><span>${group.label}</span></div>`;
-    }).join('');
-  }
+  const chartGroups = groupEnergyDays(days, mode);
+  renderEnergyChart(chartGroups, mode);
 
   const insight = document.getElementById('energy-insight');
   if (!recordedDays.length) {
@@ -494,18 +583,15 @@ function renderWeek() {
   }
   insight.hidden = false;
 
-  const historyDays = [...recordedDays].reverse().slice(0, 14);
-  document.getElementById('energy-history-count').textContent = recordedDays.length > 14 ? `显示最近 14 / ${recordedDays.length} 天` : `${recordedDays.length} 天有记录`;
+  const allRecordedDays = allDays.filter((day) => day.recorded);
+  const historyDays = [...allRecordedDays].reverse().slice(0, 7);
+  document.getElementById('energy-history-count').textContent = allRecordedDays.length > 7 ? `最新 7 / ${allRecordedDays.length} 天` : `${allRecordedDays.length} 天有记录`;
   document.getElementById('balance-history').innerHTML = historyDays.length
-    ? historyDays.map((day) => {
-        const result = day.complete
-          ? `<strong class="${day.balance > 0 ? 'surplus-text' : 'deficit-text'}">${balanceDescription(day.balance)}</strong>`
-          : `<strong class="missing-balance">缺少${day.hasFood ? '消耗' : '饮食'}</strong>`;
-        return `<div><span>${day.iso.slice(5)}</span><small>摄入 ${day.hasFood ? displayEnergy(day.intake) : '—'} · 消耗 ${day.hasBurn ? displayEnergy(day.burn) : '—'}</small>${result}</div>`;
-      }).join('')
+    ? historyDays.map(energyHistoryRow).join('')
     : '<p class="inline-empty">这个区间还没有热量记录。</p>';
 
   renderEnergyPeriodLists(allDays);
+  renderAllEnergyHistory();
 }
 
 function renderNutrients() {
@@ -1310,6 +1396,21 @@ document.querySelectorAll('[data-energy-range]').forEach((button) => button.addE
   energyRange = button.dataset.energyRange;
   renderWeek();
 }));
+document.querySelectorAll('[data-energy-metric]').forEach((button) => button.addEventListener('click', () => {
+  energyMetric = button.dataset.energyMetric;
+  renderWeek();
+}));
+document.getElementById('open-energy-history').addEventListener('click', () => {
+  renderAllEnergyHistory();
+  openDialog('energy-history-dialog');
+});
+document.querySelectorAll('[data-energy-history-filter]').forEach((button) => button.addEventListener('click', () => {
+  energyHistoryFilter = button.dataset.energyHistoryFilter;
+  renderAllEnergyHistory();
+}));
+['energy-history-from', 'energy-history-to'].forEach((id) => {
+  document.getElementById(id).addEventListener('change', renderAllEnergyHistory);
+});
 document.querySelectorAll('[data-weight-range]').forEach((button) => button.addEventListener('click', () => {
   weightRange = button.dataset.weightRange;
   renderWeightChart();
