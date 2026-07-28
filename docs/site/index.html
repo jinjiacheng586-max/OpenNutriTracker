@@ -63,8 +63,13 @@
 
       <section class="view" id="view-diary">
         <article class="card trend-card">
-          <div class="energy-analysis-header"><div><span class="label">摄入、消耗与收支</span><h2>热量趋势分析</h2><strong id="energy-period-label">最近 30 天 · 按日</strong></div><button class="primary-button small" data-action="burn">＋ 记录消耗</button></div>
-          <div class="range-tabs energy-range-tabs" aria-label="热量分析范围"><button type="button" data-energy-range="7">7 天</button><button type="button" class="active" data-energy-range="30">30 天</button><button type="button" data-energy-range="90">90 天</button><button type="button" data-energy-range="all">全部</button></div>
+          <div class="energy-analysis-header"><div><span class="label">摄入、消耗与收支</span><h2>热量趋势分析</h2><strong id="energy-period-label">本月 · 按日</strong></div><button class="primary-button small" data-action="burn">＋ 记录消耗</button></div>
+          <div class="calendar-period-controls">
+            <button type="button" class="period-arrow" data-energy-month-step="-1" aria-label="上个月">‹</button>
+            <strong id="energy-month-label"></strong>
+            <button type="button" class="period-arrow" data-energy-month-step="1" aria-label="下个月">›</button>
+            <div class="range-tabs energy-granularity-tabs" aria-label="图表粒度"><button type="button" class="active" data-energy-granularity="day">按日</button><button type="button" data-energy-granularity="week">按周</button></div>
+          </div>
           <div class="energy-summary" id="energy-summary"></div>
           <div class="energy-chart-controls"><div class="range-tabs energy-metric-tabs" aria-label="热量图表指标"><button type="button" data-energy-metric="intake">摄入</button><button type="button" data-energy-metric="burn">消耗</button><button type="button" class="active" data-energy-metric="balance">收支</button></div></div>
           <div class="energy-chart-heading"><strong id="energy-chart-title">每日平均收支</strong><small id="energy-chart-guide">柱线以上为盈余，以下为缺口</small></div>
@@ -74,25 +79,21 @@
           <div class="energy-detail-heading"><div><strong>最近记录</strong><small id="energy-history-count"></small></div><button class="text-button" id="open-energy-history" type="button">查看全部记录 ›</button></div>
           <div class="balance-history" id="balance-history"></div>
         </article>
-        <div class="energy-period-grid">
-          <article class="card energy-period-card"><div class="card-heading"><div><span class="period-icon">▥</span><span><span class="label">按自然周汇总</span><h2>每周平均</h2></span></div><small>最近 8 周</small></div><div class="energy-period-list" id="weekly-energy-list"></div></article>
-          <article class="card energy-period-card"><div class="card-heading"><div><span class="period-icon">▦</span><span><span class="label">按自然月汇总</span><h2>每月平均</h2></span></div><small>最近 6 个月</small></div><div class="energy-period-list" id="monthly-energy-list"></div></article>
-        </div>
+        <article class="card energy-period-card unified-period-card">
+          <div class="period-analysis-header"><div><span class="label">完整周期才生成结论</span><h2>周期分析</h2><small id="period-analysis-subtitle"></small></div><div class="range-tabs period-analysis-tabs" aria-label="周期分析粒度"><button type="button" class="active" data-period-mode="week">周趋势</button><button type="button" data-period-mode="month">月趋势</button></div></div>
+          <div class="period-comparison" id="period-comparison"></div>
+          <div class="energy-period-list" id="period-analysis-list"></div>
+        </article>
         <div class="section-heading"><div><span class="label">身体变化</span><h2>体重趋势</h2></div><button class="primary-button small" data-action="weight">＋ 记录体重</button></div>
         <article class="card weight-card">
-          <div class="weight-card-header"><div><span class="label">趋势分析</span><strong id="weight-period-label">全部记录</strong></div><div class="range-tabs" aria-label="体重图表范围"><button type="button" data-weight-range="30">30 天</button><button type="button" data-weight-range="90">90 天</button><button type="button" class="active" data-weight-range="all">全部</button></div></div>
+          <div class="weight-card-header"><div><span class="label">自然周期平均</span><strong id="weight-period-label">完整周与完整月</strong></div><small>进行中的周期只显示记录，不生成结论</small></div>
           <div id="weight-chart" class="weight-chart empty-chart"><div><span>⚖</span><strong>还没有体重记录</strong><small>添加第一次体重后，这里会显示趋势</small></div></div>
           <div class="weight-summary" id="weight-summary"></div>
           <div class="weight-insight" id="weight-insight" hidden></div>
         </article>
         <article class="card body-feedback-card">
-          <div class="body-feedback-heading"><div><span class="label">运动营养反馈</span><h2>热量与体重反馈</h2></div><small>7日看波动 · 14日看方向 · 28日作决定</small></div>
-          <div class="feedback-stage-grid" id="feedback-stage-grid"></div>
+          <div class="body-feedback-heading"><div><span class="label">克制的长期判断</span><h2>增肌变化判断</h2></div><small>根据已结束周期的体重与热量收支</small></div>
           <div class="body-feedback-result" id="body-feedback-result"></div>
-        </article>
-        <article class="card monthly-weight-card" id="monthly-weight-card" hidden>
-          <div class="card-heading"><div><span class="label">按月汇总</span><h2>每月平均体重</h2></div><small id="monthly-weight-subtitle"></small></div>
-          <div class="monthly-weight-list" id="monthly-weight-list"></div>
         </article>
         <div class="section-heading"><div><span class="label">今日摄入</span><h2>营养素</h2></div></div>
         <div class="nutrient-grid" id="nutrient-grid"></div>
