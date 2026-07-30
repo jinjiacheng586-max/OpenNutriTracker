@@ -79,6 +79,7 @@ function loadState() {
 
 let state = loadState();
 let selectedMeal = 'breakfast';
+let selectedLogDate = todayISO();
 let activeIngredientId = null;
 let editingIngredientId = null;
 let editingTemplateId = null;
@@ -1176,6 +1177,8 @@ function openIngredientLog(ingredient) {
   form.elements.amount.min = per100g ? '1' : '0.1';
   form.elements.amount.step = per100g ? '1' : '0.1';
   form.elements.meal.value = selectedMeal;
+  form.elements.date.max = todayISO();
+  form.elements.date.value = todayISO();
   document.getElementById('ingredient-log-help').textContent = per100g
     ? `营养数据按每 100 克计算，输入实际食用重量即可。`
     : '这是按一整份保存的食谱，可输入 0.5、1、2 等份数。';
@@ -1225,10 +1228,32 @@ function renderAll() {
   renderRecipes();
 }
 
-function openAdd(meal = 'breakfast') {
+function logDateDescription(date) {
+  if (date === todayISO()) return '今天';
+  if (date === relativeDateISO(-1)) return '昨天';
+  const [, month, day] = date.split('-').map(Number);
+  return `${month}月${day}日`;
+}
+
+function updateFoodDate(date) {
+  const safeDate = date && date <= todayISO() ? date : todayISO();
+  selectedLogDate = safeDate;
+  const input = document.getElementById('food-date');
+  input.max = todayISO();
+  input.value = safeDate;
+  document.querySelectorAll('[data-food-date-offset]').forEach((button) => {
+    button.classList.toggle('active', relativeDateISO(number(button.dataset.foodDateOffset)) === safeDate);
+  });
+  document.getElementById('food-date-hint').textContent = safeDate === todayISO()
+    ? '记录会保存到今天。'
+    : `正在补记${logDateDescription(safeDate)}，保存后会计入当天和对应周期。`;
+}
+
+function openAdd(meal = 'breakfast', date = todayISO()) {
   selectedMeal = meal;
   document.getElementById('meal-select').value = meal;
   document.getElementById('meal-name').textContent = mealNames[meal];
+  updateFoodDate(date);
   renderQuickLists();
   openDialog('add-dialog');
 }
@@ -1237,6 +1262,10 @@ document.getElementById('meal-select').addEventListener('change', (event) => {
   selectedMeal = event.target.value;
   document.getElementById('meal-name').textContent = mealNames[selectedMeal];
 });
+document.getElementById('food-date').addEventListener('change', (event) => updateFoodDate(event.target.value));
+document.querySelectorAll('[data-food-date-offset]').forEach((button) => button.addEventListener('click', () => {
+  updateFoodDate(relativeDateISO(number(button.dataset.foodDateOffset)));
+}));
 
 document.querySelectorAll('[data-open-add]').forEach((button) => button.addEventListener('click', () => openAdd('breakfast')));
 document.querySelectorAll('[data-add-tab]').forEach((button) => button.addEventListener('click', () => {
@@ -1246,9 +1275,10 @@ document.querySelectorAll('[data-add-tab]').forEach((button) => button.addEventL
 }));
 
 function addFood(food) {
+  const logDate = selectedLogDate && selectedLogDate <= todayISO() ? selectedLogDate : todayISO();
   state.foods.push({
     id: crypto.randomUUID(),
-    date: todayISO(),
+    date: logDate,
     meal: selectedMeal,
     name: String(food.name || '未命名食物'),
     emoji: food.emoji || '🍴',
@@ -1261,7 +1291,7 @@ function addFood(food) {
   renderAll();
   const addDialog = document.getElementById('add-dialog');
   if (addDialog.open) addDialog.close();
-  showToast(`已添加到${mealNames[selectedMeal]}`);
+  showToast(`已添加到${logDateDescription(logDate)}的${mealNames[selectedMeal]}`);
 }
 
 function normalizedFood(food) {
@@ -1667,6 +1697,7 @@ document.getElementById('ingredient-log-form').addEventListener('submit', (event
   const amount = number(values.amount);
   const factor = ingredient.basis === 'per100g' ? amount / 100 : amount;
   selectedMeal = values.meal;
+  selectedLogDate = values.date && values.date <= todayISO() ? values.date : todayISO();
   addFood({
     name: `${ingredient.name}（${formatNumber(amount, 1)}${ingredient.basis === 'per100g' ? '克' : '份'}）`,
     emoji: ingredient.emoji,
